@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FocusReset — Complete Product Information</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f0e8;--card:#fdfaf5;--ink:#1a1410;--mid:#6b5f52;
+  --border:#d4c9b8;--accent:#e85d26;--green:#2d6e4e;
+  --green-light:#e8f5ee;--accent-light:#fdf0eb;
+  --dark:#111009;--dark2:#1a1610;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:'Syne',sans-serif;font-size:15px;line-height:1.7}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:17px;font-weight:800;letter-spacing:-0.5px}
+.logo span{color:var(--accent)}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap}
+.nav-pill{padding:6px 14px;border-radius:100px;border:1px solid var(--border);font-size:12px;font-weight:600;background:transparent;color:var(--mid);cursor:pointer;text-decoration:none;transition:.15s}
+.nav-pill:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* ── HERO ── */
+.hero{padding:80px 40px 60px;max-width:900px;margin:0 auto;text-align:center}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);padding:6px 16px;border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mid);margin-bottom:28px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+h1{font-family:'Instrument Serif',serif;font-size:clamp(44px,6vw,76px);line-height:1.05;letter-spacing:-1px;margin-bottom:20px}
+h1 em{font-style:italic;color:var(--accent)}
+.hero-sub{font-size:17px;color:var(--mid);max-width:560px;margin:0 auto 40px;line-height:1.75}
+.hero-stats{display:flex;justify-content:center;gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;max-width:600px;margin:0 auto}
+.hstat{flex:1;padding:20px;text-align:center;border-right:1px solid var(--border)}
+.hstat:last-child{border-right:none}
+.hstat-num{font-family:'Instrument Serif',serif;font-size:32px;color:var(--accent);display:block}
+.hstat-label{font-size:11px;color:var(--mid);font-family:'JetBrains Mono',monospace}
+
+/* ── SECTION WRAPPER ── */
+.section{padding:72px 40px;max-width:900px;margin:0 auto}
+.section-full{padding:72px 40px}
+.dark-section{background:var(--dark);color:#e8e0d0;padding:72px 40px}
+.green-section{background:var(--green);color:white;padding:72px 40px}
+
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px}
+.dark-section .eyebrow{color:#e87e50}
+.green-section .eyebrow{color:#a8f0c8}
+h2{font-family:'Instrument Serif',serif;font-size:clamp(30px,4vw,48px);line-height:1.1;margin-bottom:16px;letter-spacing:-.5px}
+h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px}
+.section-sub{font-size:16px;color:var(--mid);line-height:1.7;margin-bottom:48px;max-width:600px}
+.dark-section .section-sub{color:#8a7f74}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px}
+.dark-card{background:#1a1610;border:1px solid #2a2520;border-radius:14px;padding:28px}
+.green-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:14px;padding:28px}
+.card-accent-left{border-left:3px solid var(--accent)}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px}
+
+/* ── BADGES ── */
+.badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;padding:4px 10px;border-radius:4px;border:1px solid}
+.badge-accent{background:var(--accent-light);border-color:#e8c4b4;color:var(--accent)}
+.badge-green{background:var(--green-light);border-color:#b8d9c8;color:var(--green)}
+.badge-dark{background:#1a1610;border-color:#2a2520;color:#8a7f74}
+.badge-free{background:#e8f0fe;border-color:#b8c8f4;color:#2656b8}
+
+/* ── STEP FLOW ── */
+.step-flow{display:flex;flex-direction:column;gap:0}
+.step-row{display:grid;grid-template-columns:60px 2px 1fr;gap:0 24px;align-items:start}
+.step-num{font-family:'Instrument Serif',serif;font-size:40px;color:var(--border);line-height:1;text-align:right;padding-top:4px;transition:.2s}
+.step-connector{display:flex;flex-direction:column;align-items:center}
+.step-dot{width:14px;height:14px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:8px;position:relative;left:-6px}
+.step-line{width:2px;flex:1;background:var(--border);min-height:48px;position:relative;left:-6px}
+.step-row:last-child .step-line{display:none}
+.step-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:16px}
+.step-card:hover{border-color:var(--accent)}
+.step-card:hover ~ .step-num, .step-row:hover .step-num{color:var(--accent)}
+.step-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px}
+.step-title{font-size:17px;font-weight:700;margin-bottom:6px}
+.step-desc{font-size:13px;color:var(--mid);line-height:1.6}
+.step-detail{margin-top:12px;padding:10px 14px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--mid);border-left:2px solid var(--border)}
+
+/* ── AI SECTION ── */
+.ai-hero{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;max-width:900px;margin:0 auto}
+.model-card{background:var(--dark2);border:1px solid #2a2520;border-radius:16px;padding:32px;position:relative;overflow:hidden}
+.model-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(232,93,38,.15) 0%,transparent 70%)}
+.model-name{font-family:'JetBrains Mono',monospace;font-size:13px;color:#e87e50;margin-bottom:8px}
+.model-title{font-family:'Instrument Serif',serif;font-size:28px;color:#e8e0d0;margin-bottom:16px;line-height:1.2}
+.model-stats{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.mstat{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#111009;border-radius:8px;border:1px solid #2a2520}
+.mstat-label{font-size:12px;color:#6b6560}
+.mstat-val{font-family:'JetBrains Mono',monospace;font-size:13px;color:#e8e0d0;font-weight:500}
+.mstat-val.highlight{color:#e87e50}
+
+.ai-tasks{display:flex;flex-direction:column;gap:12px}
+.ai-task{background:#1a1610;border:1px solid #2a2520;border-radius:10px;padding:16px 20px}
+.ai-task-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:#e87e50;margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase}
+.ai-task-title{font-size:14px;font-weight:600;color:#e8e0d0;margin-bottom:4px}
+.ai-task-desc{font-size:12px;color:#6b6560;line-height:1.55}
+
+/* ── FEATURE LIST ── */
+.feature-list{display:flex;flex-direction:column;gap:12px}
+.feat-row{display:flex;gap:16px;align-items:flex-start;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+.feat-icon{font-size:22px;flex-shrink:0;width:36px;text-align:center}
+.feat-body{}
+.feat-title{font-weight:700;font-size:14px;margin-bottom:3px}
+.feat-desc{font-size:13px;color:var(--mid);line-height:1.55}
+
+/* ── INTEGRATION GRID ── */
+.int-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:32px}
+.int-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center}
+.int-icon{font-size:28px;margin-bottom:10px}
+.int-name{font-size:14px;font-weight:700;margin-bottom:4px}
+.int-what{font-size:12px;color:var(--mid);line-height:1.5}
+.int-badge{margin-top:10px}
+
+/* ── MONETIZATION ── */
+.price-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:32px}
+.price-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:28px}
+.price-card.featured{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.price-plan{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-bottom:10px}
+.price-card.featured .price-plan{color:var(--accent)}
+.price-amount{font-family:'Instrument Serif',serif;font-size:44px;line-height:1;margin-bottom:4px}
+.price-period{font-size:12px;color:var(--mid);margin-bottom:20px}
+.price-card.featured .price-period{color:#8a7f74}
+.price-list{list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13px}
+.price-list li::before{content:'✓ ';color:var(--green);font-weight:700}
+.price-card.featured .price-list li::before{color:var(--accent)}
+
+/* ── DATA FLOW ── */
+.flow-diagram{display:flex;align-items:center;gap:0;overflow-x:auto;padding:8px 0;margin-top:32px}
+.flow-node{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;min-width:110px;flex-shrink:0}
+.flow-node-icon{font-size:20px;margin-bottom:6px}
+.flow-node-label{font-size:11px;font-weight:700;line-height:1.3}
+.flow-node-sub{font-size:10px;color:var(--mid);margin-top:2px}
+.flow-arrow{font-size:20px;color:var(--border);padding:0 8px;flex-shrink:0}
+.flow-node.ai-node{background:var(--dark2);border-color:#2a2520;color:#e8e0d0}
+.flow-node.ai-node .flow-node-sub{color:#6b6560}
+
+/* ── PRIVACY TABLE ── */
+.priv-table{width:100%;border-collapse:collapse;margin-top:24px;font-size:13px}
+.priv-table th{text-align:left;padding:10px 14px;background:var(--card);border-bottom:2px solid var(--border);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mid)}
+.priv-table td{padding:12px 14px;border-bottom:1px solid var(--border)}
+.priv-table tr:hover td{background:var(--accent-light)}
+.never{color:var(--green);font-weight:600}
+.leaves{color:var(--accent);font-weight:600}
+
+/* ── TECH STACK ── */
+.tech-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px}
+.tech-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#111009;border:1px solid #2a2520;border-radius:8px}
+.tech-label{font-size:12px;color:#6b6560;min-width:90px;font-family:'JetBrains Mono',monospace}
+.tech-val{font-size:13px;color:#e8e0d0;font-weight:600}
+
+/* ── TIMELINE ── */
+.timeline{display:flex;flex-direction:column;gap:0;margin-top:24px}
+.tl-item{display:grid;grid-template-columns:80px 1fr;gap:24px;position:relative;padding-bottom:24px}
+.tl-item::before{content:'';position:absolute;left:88px;top:18px;bottom:0;width:2px;background:var(--border)}
+.tl-item:last-child::before{display:none}
+.tl-marker{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);text-align:right;padding-top:4px;font-weight:500}
+.tl-content{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 20px;position:relative}
+.tl-content::before{content:'';position:absolute;left:-9px;top:14px;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.tl-title{font-size:14px;font-weight:700;margin-bottom:4px}
+.tl-desc{font-size:12px;color:var(--mid);line-height:1.55}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  nav{padding:14px 20px}.nav-links{display:none}
+  .hero{padding:60px 20px 40px}
+  .hero-stats{flex-direction:column}
+  .hstat{border-right:none;border-bottom:1px solid var(--border)}
+  .section,.section-full,.dark-section,.green-section{padding:48px 20px}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .ai-hero{grid-template-columns:1fr}
+  .int-grid{grid-template-columns:1fr 1fr}
+  .price-grid{grid-template-columns:1fr}
+  .tech-grid{grid-template-columns:1fr}
+  h1{font-size:40px}h2{font-size:30px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Focus<span>Reset</span></div>
+  <div class="nav-links">
+    <a class="nav-pill" href="#problem">Problem</a>
+    <a class="nav-pill" href="#how">How It Works</a>
+    <a class="nav-pill" href="#features">Features</a>
+    <a class="nav-pill" href="#ai">AI Engine</a>
+    <a class="nav-pill" href="#integrations">Integrations</a>
+    <a class="nav-pill" href="#privacy">Privacy</a>
+    <a class="nav-pill" href="#monetization">Pricing</a>
+    <a class="nav-pill" href="#tech">Tech Stack</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">
+    <div class="dot"></div>
+    Complete Product Document — FocusReset v1.0
+  </div>
+  <h1>The Meeting Hangover<br/><em>Cure for Knowledge Workers</em></h1>
+  <p class="hero-sub">A complete product breakdown — every feature, how the AI works, what data is stored, how money is made, and how the whole system fits together.</p>
+  <div class="hero-stats">
+    <div class="hstat">
+      <span class="hstat-num">40min</span>
+      <span class="hstat-label">Lost after every meeting</span>
+    </div>
+    <div class="hstat">
+      <span class="hstat-num">7hrs</span>
+      <span class="hstat-label">Wasted every week</span>
+    </div>
+    <div class="hstat">
+      <span class="hstat-num">10min</span>
+      <span class="hstat-label">FocusReset takes</span>
+    </div>
+    <div class="hstat">
+      <span class="hstat-num">₹0</span>
+      <span class="hstat-label">To start using</span>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 1: THE PROBLEM -->
+<div class="dark-section" id="problem">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="eyebrow">The Problem We Solve</div>
+    <h2 style="color:#e8e0d0">Your brain stays in the meeting<br/>long after it ends.</h2>
+    <p class="section-sub">This isn't laziness. It's neuroscience. When you're in a meeting, your brain operates in "social mode" — processing conversation, reading body language, managing relationships. Switching that off instantly and entering deep focused work is neurologically very hard. Most people spend 30–40 minutes in a zombie state where they can't code, write, design, or think clearly.</p>
+    <div class="g3">
+      <div class="dark-card">
+        <div style="font-size:28px;margin-bottom:12px">🧠</div>
+        <h3 style="color:#e8e0d0;margin-bottom:8px">The Science</h3>
+        <p style="font-size:13px;color:#8a7f74;line-height:1.6">Context switching between social and analytical tasks requires your prefrontal cortex to completely reorganize its neural activation patterns. This takes time — and willpower alone doesn't speed it up.</p>
+      </div>
+      <div class="dark-card">
+        <div style="font-size:28px;margin-bottom:12px">📊</div>
+        <h3 style="color:#e8e0d0;margin-bottom:8px">The Scale</h3>
+        <p style="font-size:13px;color:#8a7f74;line-height:1.6">Knowledge workers have an average of 11 meetings per week. At 40 minutes of recovery time each, that's 7.3 hours of lost deep work time per week — nearly one full working day gone.</p>
+      </div>
+      <div class="dark-card">
+        <div style="font-size:28px;margin-bottom:12px">💡</div>
+        <h3 style="color:#e8e0d0;margin-bottom:8px">The Gap</h3>
+        <p style="font-size:13px;color:#8a7f74;line-height:1.6">Existing tools try to prevent bad meetings. Nobody has built a recovery tool for after meetings. FocusReset fills this exact gap with a structured 10-minute brain reset protocol.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: HOW IT WORKS -->
+<div class="section" id="how">
+  <div class="eyebrow">Core Product</div>
+  <h2>The 4-Step Reset Protocol</h2>
+  <p class="section-sub">Every reset takes exactly 10 minutes across 4 structured steps. Each step has a specific neurological purpose. Together they systematically move your brain from social mode back into deep focus mode.</p>
+
+  <div class="step-flow">
+
+    <div class="step-row">
+      <div class="step-num">01</div>
+      <div class="step-connector"><div class="step-dot"></div><div class="step-line"></div></div>
+      <div>
+        <div class="step-card">
+          <div class="step-time">⏱ 2 MINUTES · BRAIN DUMP</div>
+          <div class="step-title">Empty your head completely</div>
+          <div class="step-desc">You see a large open textarea. You type everything still running in your mind from the meeting — unfinished thoughts, things people said, tasks that came up, things that worried you, follow-ups you need to do. Completely unstructured. No format needed. Just stream of consciousness.</div>
+          <div class="step-detail">🔐 Privacy: This text is NEVER saved. Not to localStorage, not to any server. The moment you click "done", it vanishes from memory. Before vanishing, the AI silently extracts only structured metadata (project names, people, emotional tone) — never the raw words. A 2-minute countdown timer runs in the corner but never forces you forward.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-row">
+      <div class="step-num">02</div>
+      <div class="step-connector"><div class="step-dot"></div><div class="step-line"></div></div>
+      <div>
+        <div class="step-card">
+          <div class="step-time">⏱ 1 MINUTE · PRIORITY RESET</div>
+          <div class="step-title">Pick exactly one thing</div>
+          <div class="step-desc">You see 4 task cards. These are not generic — the AI generates them based on your profile, your calendar, your Jira tickets, and what you've been working on. You must pick exactly one. This forces your brain to commit to a direction instead of spinning between options. You can also type a custom task.</div>
+          <div class="step-detail">🤖 AI: While you were doing Step 1, the app called the Groq API in the background to generate personalized suggestions. By the time you arrive at Step 2, your custom cards are ready. If AI fails, generic fallback cards show instantly — the flow never blocks.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-row">
+      <div class="step-num">03</div>
+      <div class="step-connector"><div class="step-dot"></div><div class="step-line"></div></div>
+      <div>
+        <div class="step-card">
+          <div class="step-time">⏱ 2 MINUTES · ENTRY TASK</div>
+          <div class="step-title">Choose an absurdly small action</div>
+          <div class="step-desc">You see 4 micro-tasks tailored to your chosen priority. Each one is completable in 60–90 seconds. Examples: "Open the file and read only the last 3 lines you wrote." "Write just the function name — nothing inside it." These feel almost laughably small. That's the point. Starting is the hardest part.</div>
+          <div class="step-detail">🧪 Psychology: This uses the "2-minute rule" and "minimum viable action" principles from behavioral psychology. A tiny first action bypasses the activation energy barrier that blocks people from starting deep work. Once started, the brain naturally continues.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-row">
+      <div class="step-num">04</div>
+      <div class="step-connector"><div class="step-dot"></div><div class="step-line"></div></div>
+      <div>
+        <div class="step-card">
+          <div class="step-time">⏱ 25 MINUTES · FOCUS SESSION</div>
+          <div class="step-title">Deep work — your brain is ready now</div>
+          <div class="step-desc">Full screen. Minimal UI. A large circular countdown ring showing 25 minutes. Your chosen task displayed below. Three buttons only: Pause, "I'm in flow" (exit early), Restart. The Screen Wake Lock API prevents your screen from sleeping. This is the Pomodoro technique — but now it actually works because your brain is properly prepared.</div>
+          <div class="step-detail">✅ Completion: When done (or early exit), you see your stats — minutes focused, current streak, sessions this week. The session is saved to your dashboard. A new reset can start immediately.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SECTION 3: FULL FEATURES -->
+<div class="dark-section" id="features">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="eyebrow">Complete Feature List</div>
+    <h2 style="color:#e8e0d0">Everything FocusReset does</h2>
+    <p class="section-sub">Organized by area. Every feature in the final product.</p>
+
+    <div class="g2">
+      <div>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#e87e50;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px">Core Reset Features</p>
+        <div class="feature-list">
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">🎯</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">Pre-Reset Meeting Selector</div>
+              <div class="feat-desc" style="color:#6b6560">7 meeting types to log before starting. Auto-filled from Google Calendar. Tracks which meeting types drain you the most over time.</div>
+            </div>
+          </div>
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">✍️</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">Private Brain Dump</div>
+              <div class="feat-desc" style="color:#6b6560">Completely private text area. Never saved. Personalized prompt uses your actual meeting name if from calendar. Countdown timer, never forced.</div>
+            </div>
+          </div>
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">🤖</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">AI-Generated Task Cards</div>
+              <div class="feat-desc" style="color:#6b6560">4 personalized task suggestions generated by Groq AI using your profile, Jira tickets, GitHub PRs, and session patterns. Updates as your context changes.</div>
+            </div>
+          </div>
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">⚡</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">Micro-Task Entry Points</div>
+              <div class="feat-desc" style="color:#6b6560">3 entry tasks per priority, each 60-90 seconds. Removes the activation energy barrier to starting deep work. Behaviorally designed.</div>
+            </div>
+          </div>
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">⏱️</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">25-Minute Focus Timer</div>
+              <div class="feat-desc" style="color:#6b6560">Full-screen Pomodoro. Circular SVG ring. Screen Wake Lock API. Pause, early exit ("I'm in flow"), restart. Shows task reminder throughout.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#e87e50;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px">Analytics & Intelligence</p>
+        <div class="feature-list">
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">📊</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">Personal Focus Dashboard</div>
+              <div class="feat-desc" style="color:#6b6560">Sessions this week, focus minutes recovered, current streak, average recovery time. Recharts bar chart Mon–Sun. All calculated from localStorage.</div>
+            </div>
+          </div>
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">😵</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">Meeting Drain Ranking</div>
+              <div class="feat-desc" style="color:#6b6560">Shows which meeting types drain you most (by frequency and by average recovery time). Two toggle views. Helps you understand your personal patterns.</div>
+            </div>
+          </div>
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">🧾</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">Session History Log</div>
+              <div class="feat-desc" style="color:#6b6560">Last 10 sessions with meeting type badge, task chosen, step completion dots, focus minutes. Hover to see AI-extracted context (projects, people, tone).</div>
+            </div>
+          </div>
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">📈</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">AI Weekly Report</div>
+              <div class="feat-desc" style="color:#6b6560">5-section personalized insight report generated by Llama 3.3 70B. Cached 6 hours. Unlocks after 3 sessions. See full AI section below.</div>
+            </div>
+          </div>
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">🔥</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">Focus Streak Tracker</div>
+              <div class="feat-desc" style="color:#6b6560">Consecutive days with at least one completed session. Motivates daily usage. Shown prominently on dashboard and completion screen.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <br/><br/>
+    <div class="g2">
+      <div>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#e87e50;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px">Onboarding & Personalization</p>
+        <div class="feature-list">
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">👤</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">5-Step Onboarding Flow</div>
+              <div class="feat-desc" style="color:#6b6560">Name → Role (6 options) → Daily tools (multi-select) → Active projects (1-3 names) → Focus peak time + meetings/day. Takes 90 seconds. Runs once.</div>
+            </div>
+          </div>
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">🧩</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">Context Assembly Engine</div>
+              <div class="feat-desc" style="color:#6b6560">Packages profile + session patterns + calendar + integrations into one context object before every AI call. Makes every suggestion smarter over time.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#e87e50;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px">Calendar & Automation</p>
+        <div class="feature-list">
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">📅</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">Google Calendar Auto-Detection</div>
+              <div class="feat-desc" style="color:#6b6560">Polls every 5 minutes. When a real meeting ends (within last 30 min), a toast notification slides up: "[Meeting] just ended. Ready to reset?" Auto-fills meeting type and name.</div>
+            </div>
+          </div>
+          <div class="feat-row" style="background:#1a1610;border-color:#2a2520">
+            <div class="feat-icon">🔔</div>
+            <div class="feat-body">
+              <div class="feat-title" style="color:#e8e0d0">Smart Meeting Toast</div>
+              <div class="feat-desc" style="color:#6b6560">Bottom-right popup. Shows meeting name, type badge, "X min ago". Start Reset or Skip buttons. Auto-dismisses in 60 seconds. Never shows same meeting twice.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: AI ENGINE -->
+<div class="section" id="ai">
+  <div class="eyebrow">AI Engine</div>
+  <h2>Powered by Groq + Llama 3.3 70B</h2>
+  <p class="section-sub">FocusReset uses Groq's free API tier running Meta's Llama 3.3 70B model. Here's exactly what the AI does, how fast it is, and why this specific model was chosen.</p>
+
+  <div class="ai-hero">
+    <div>
+      <div class="model-card">
+        <div class="model-name">console.groq.com · Free Tier</div>
+        <div class="model-title">Llama 3.3<br/>70B Versatile</div>
+        <p style="font-size:13px;color:#8a7f74;line-height:1.6;margin-bottom:4px">Meta's most advanced 70B parameter model. Released December 2024. Performs on par with models 5× its size on reasoning, coding, and instruction-following tasks.</p>
+        <div class="model-stats">
+          <div class="mstat">
+            <span class="mstat-label">Parameters</span>
+            <span class="mstat-val highlight">70 Billion</span>
+          </div>
+          <div class="mstat">
+            <span class="mstat-label">Inference speed</span>
+            <span class="mstat-val highlight">276 tokens/sec</span>
+          </div>
+          <div class="mstat">
+            <span class="mstat-label">Context window</span>
+            <span class="mstat-val">128,000 tokens</span>
+          </div>
+          <div class="mstat">
+            <span class="mstat-label">MMLU accuracy</span>
+            <span class="mstat-val">86.0%</span>
+          </div>
+          <div class="mstat">
+            <span class="mstat-label">Training method</span>
+            <span class="mstat-val">SFT + RLHF</span>
+          </div>
+          <div class="mstat">
+            <span class="mstat-label">Architecture</span>
+            <span class="mstat-val">Transformer + GQA</span>
+          </div>
+          <div class="mstat">
+            <span class="mstat-label">Cost to use</span>
+            <span class="mstat-val highlight">Free (dev tier)</span>
+          </div>
+          <div class="mstat">
+            <span class="mstat-label">Paid cost</span>
+            <span class="mstat-val">$0.59/1M input tokens</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px">What The Model Does in FocusReset</p>
+      <div class="ai-tasks">
+        <div class="ai-task">
+          <div class="ai-task-tag">Task 1 · Step 1 exit · max_tokens: 300</div>
+          <div class="ai-task-title">Brain Dump Context Extraction</div>
+          <div class="ai-task-desc">Reads the user's raw brain dump text. Silently extracts: project names mentioned, people names, task types, emotional tone (stressed/neutral/energized), deadlines, and blockers. Returns structured JSON only. Raw text never stored — only this JSON summary is saved. Uses low token limit for speed — must complete before user reads the next screen.</div>
+        </div>
+        <div class="ai-task">
+          <div class="ai-task-tag">Task 2 · Step 2 load · max_tokens: 800</div>
+          <div class="ai-task-title">Personalized Task Card Generation</div>
+          <div class="ai-task-desc">Receives the full context object: user profile, session patterns, calendar events, Jira tickets, GitHub PRs, Notion pages, extracted brain dump summary. Generates 4 priority task cards with real project names and ticket numbers, plus 3 micro entry tasks per card (12 total). Cached in sessionStorage for 10 minutes. Falls back to generic cards instantly if AI fails.</div>
+        </div>
+        <div class="ai-task">
+          <div class="ai-task-tag">Task 3 · Dashboard · max_tokens: 1200</div>
+          <div class="ai-task-title">Weekly Insight Report Generation</div>
+          <div class="ai-task-desc">Reads last 30 sessions from localStorage. Generates 5-section insight report: Hangover Pattern (which meetings drain most with numbers), Best Focus Windows (time-of-day analysis), Recovery Speed (step duration analysis), Weekly Momentum (streak and consistency), and One Thing to Change (single specific actionable recommendation). Cached 6 hours. Only generated when user requests it.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <br/><br/>
+
+  <!-- How Groq is different -->
+  <div class="eyebrow" style="margin-top:8px">Why Groq Specifically</div>
+  <h3 style="font-size:22px;margin-bottom:16px">Groq's LPU — Built for Speed</h3>
+  <div class="g3">
+    <div class="card">
+      <h3>LPU Chip</h3>
+      <p style="font-size:13px;color:var(--mid);line-height:1.6">Groq uses a proprietary Language Processing Unit — purpose-built hardware for running LLMs. Unlike GPUs (designed for graphics), LPUs are optimized specifically for sequential text generation with zero memory bottlenecks.</p>
+    </div>
+    <div class="card">
+      <h3>276 Tokens/Second</h3>
+      <p style="font-size:13px;color:var(--mid);line-height:1.6">Independently benchmarked as the fastest LLM inference provider on earth for this model size. A 300-token brain dump extraction completes in about 1 second. The user barely notices the AI call happened.</p>
+    </div>
+    <div class="card">
+      <h3>Free Developer Tier</h3>
+      <p style="font-size:13px;color:var(--mid);line-height:1.6">Groq's free tier at console.groq.com gives generous rate limits sufficient to run FocusReset for hundreds of users without paying anything. Paid tier is $0.59 per million input tokens — extremely cheap at scale.</p>
+    </div>
+  </div>
+
+  <br/>
+  <!-- AI Data Flow -->
+  <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">AI Data Flow — What Gets Sent</p>
+  <div class="flow-diagram">
+    <div class="flow-node">
+      <div class="flow-node-icon">👤</div>
+      <div class="flow-node-label">User Profile</div>
+      <div class="flow-node-sub">role, projects, tools</div>
+    </div>
+    <div class="flow-arrow">+</div>
+    <div class="flow-node">
+      <div class="flow-node-icon">📅</div>
+      <div class="flow-node-label">Calendar</div>
+      <div class="flow-node-sub">meeting metadata</div>
+    </div>
+    <div class="flow-arrow">+</div>
+    <div class="flow-node">
+      <div class="flow-node-icon">📊</div>
+      <div class="flow-node-label">Sessions</div>
+      <div class="flow-node-sub">patterns, durations</div>
+    </div>
+    <div class="flow-arrow">+</div>
+    <div class="flow-node">
+      <div class="flow-node-icon">🎟️</div>
+      <div class="flow-node-label">Jira / GitHub</div>
+      <div class="flow-node-sub">ticket titles, PR names</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node ai-node">
+      <div class="flow-node-icon">⚡</div>
+      <div class="flow-node-label">Groq API</div>
+      <div class="flow-node-sub">Llama 3.3 70B</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node">
+      <div class="flow-node-icon">✨</div>
+      <div class="flow-node-label">Personalized</div>
+      <div class="flow-node-sub">tasks + insights</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: INTEGRATIONS -->
+<div class="dark-section" id="integrations">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="eyebrow">Optional Integrations</div>
+    <h2 style="color:#e8e0d0">Connect your tools.<br/>Get smarter suggestions.</h2>
+    <p class="section-sub">Every integration is optional. The app works without any of them. But each one makes the AI suggestions significantly more personalized and relevant.</p>
+
+    <div class="int-grid">
+      <div class="dark-card" style="text-align:center">
+        <div class="int-icon">📅</div>
+        <div class="int-name" style="color:#e8e0d0">Google Calendar</div>
+        <div class="int-what" style="color:#6b6560">Auto-detects when meetings end. Pre-fills meeting name and type. Shows today's schedule. Polls every 5 minutes. GSI OAuth — no server needed.</div>
+        <div style="margin-top:12px"><span class="badge badge-green">Free OAuth</span></div>
+      </div>
+      <div class="dark-card" style="text-align:center">
+        <div class="int-icon">🐙</div>
+        <div class="int-name" style="color:#e8e0d0">GitHub</div>
+        <div class="int-what" style="color:#6b6560">Fetches your 10 most recently active repos and all open pull requests. PR titles appear in your task suggestions. OAuth App, read-only scope.</div>
+        <div style="margin-top:12px"><span class="badge badge-green">Read Only</span></div>
+      </div>
+      <div class="dark-card" style="text-align:center">
+        <div class="int-icon">🎟️</div>
+        <div class="int-name" style="color:#e8e0d0">Jira</div>
+        <div class="int-what" style="color:#6b6560">Fetches open tickets assigned to you updated in last 7 days. Ticket numbers and titles appear in task suggestions. API token auth — no OAuth needed.</div>
+        <div style="margin-top:12px"><span class="badge badge-accent">API Token</span></div>
+      </div>
+      <div class="dark-card" style="text-align:center">
+        <div class="int-icon">📄</div>
+        <div class="int-name" style="color:#e8e0d0">Notion</div>
+        <div class="int-what" style="color:#6b6560">Fetches your 10 most recently edited pages. Page titles add context to AI suggestions. Notion OAuth integration. Read-only.</div>
+        <div style="margin-top:12px"><span class="badge badge-green">Read Only</span></div>
+      </div>
+      <div class="dark-card" style="text-align:center">
+        <div class="int-icon">💳</div>
+        <div class="int-name" style="color:#e8e0d0">Razorpay</div>
+        <div class="int-what" style="color:#6b6560">Payment processor for Pro upgrades. Client-side only checkout. Supports UPI, cards, netbanking. Indian payment stack. No server needed for basic integration.</div>
+        <div style="margin-top:12px"><span class="badge badge-accent">Payments</span></div>
+      </div>
+      <div class="dark-card" style="text-align:center;border:1px dashed #2a2520;opacity:.6">
+        <div class="int-icon">🔜</div>
+        <div class="int-name" style="color:#e8e0d0">Coming Soon</div>
+        <div class="int-what" style="color:#6b6560">Linear, Slack workspace activity, Figma recent files, Google Docs recently edited. Each adds richer context to AI suggestions.</div>
+        <div style="margin-top:12px"><span class="badge badge-dark">Roadmap</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 6: PRIVACY -->
+<div class="section" id="privacy">
+  <div class="eyebrow">Privacy & Data</div>
+  <h2>Exactly what is stored<br/>and where</h2>
+  <p class="section-sub">FocusReset is designed to run entirely in your browser. No backend. No database. No account required. Here's the complete data picture.</p>
+
+  <table class="priv-table">
+    <thead>
+      <tr>
+        <th>Data Type</th>
+        <th>Where It Lives</th>
+        <th>What It Contains</th>
+        <th>Leaves Device?</th>
+        <th>User Can Delete?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Brain Dump Text</strong></td>
+        <td>Browser memory only</td>
+        <td>Raw Step 1 text</td>
+        <td><span class="never">Never — deleted instantly</span></td>
+        <td>N/A — never saved</td>
+      </tr>
+      <tr>
+        <td><strong>Brain Dump Extract</strong></td>
+        <td>localStorage</td>
+        <td>Project names, tone, people (JSON only)</td>
+        <td><span class="leaves">Yes — sent to Groq API</span></td>
+        <td>Yes — per session</td>
+      </tr>
+      <tr>
+        <td><strong>User Profile</strong></td>
+        <td>localStorage</td>
+        <td>Name, role, tools, projects</td>
+        <td><span class="leaves">Yes — sent to Groq for context</span></td>
+        <td>Yes — full delete</td>
+      </tr>
+      <tr>
+        <td><strong>Session History</strong></td>
+        <td>localStorage</td>
+        <td>Meeting types, tasks, durations, focus mins</td>
+        <td><span class="leaves">Yes — anonymized, sent to Groq for weekly report</span></td>
+        <td>Yes — individual or all</td>
+      </tr>
+      <tr>
+        <td><strong>Google Calendar Token</strong></td>
+        <td>localStorage</td>
+        <td>OAuth access token only</td>
+        <td><span class="leaves">Yes — used to call Google API</span></td>
+        <td>Yes — disconnect</td>
+      </tr>
+      <tr>
+        <td><strong>Calendar Events</strong></td>
+        <td>Memory only (not saved)</td>
+        <td>Meeting titles, times, attendee count</td>
+        <td><span class="never">Fetched from Google, not re-sent anywhere</span></td>
+        <td>N/A — not saved</td>
+      </tr>
+      <tr>
+        <td><strong>GitHub Data</strong></td>
+        <td>localStorage</td>
+        <td>Repo names, PR titles only</td>
+        <td><span class="leaves">Yes — PR titles sent to Groq for context</span></td>
+        <td>Yes — disconnect</td>
+      </tr>
+      <tr>
+        <td><strong>Jira Data</strong></td>
+        <td>localStorage</td>
+        <td>Ticket keys and summaries only</td>
+        <td><span class="leaves">Yes — ticket titles sent to Groq for context</span></td>
+        <td>Yes — disconnect</td>
+      </tr>
+      <tr>
+        <td><strong>Notion Data</strong></td>
+        <td>localStorage</td>
+        <td>Page titles only</td>
+        <td><span class="leaves">Yes — page titles sent to Groq for context</span></td>
+        <td>Yes — disconnect</td>
+      </tr>
+      <tr>
+        <td><strong>Subscription Status</strong></td>
+        <td>localStorage</td>
+        <td>Plan, valid until, Razorpay ID</td>
+        <td><span class="never">No — local only</span></td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><strong>Weekly AI Report</strong></td>
+        <td>localStorage</td>
+        <td>Cached Groq response</td>
+        <td><span class="never">No — stored locally after generation</span></td>
+        <td>Yes</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top:32px;padding:24px;background:var(--accent-light);border-left:4px solid var(--accent);border-radius:0 12px 12px 0">
+    <strong>🔐 Brain Dump Guarantee:</strong> The text you type in Step 1 is processed only in browser memory. The moment you click "Next", it is set to null and garbage collected. Only a structured JSON summary (never your actual words) is extracted by AI and then saved. Your raw thoughts are never readable by anyone — including us.
+  </div>
+</div>
+
+<!-- SECTION 7: MONETIZATION -->
+<div class="dark-section" id="monetization">
+  <div style="max-width:900px;margin:0 auto">
+    <div class="eyebrow">Business Model</div>
+    <h2 style="color:#e8e0d0">How FocusReset makes money</h2>
+    <p class="section-sub">Freemium model. Free tier is genuinely useful — not crippled. Paid tier unlocks AI and automation features. B2B team tier scales revenue.</p>
+
+    <div class="price-grid">
+      <div style="background:#1a1610;border:1.5px solid #2a2520;border-radius:14px;padding:28px">
+        <div class="price-plan" style="color:#6b6560">Free Forever</div>
+        <div class="price-amount" style="color:#e8e0d0;font-family:'Instrument Serif',serif;font-size:44px">₹0</div>
+        <div class="price-period" style="color:#4a4540">no credit card needed</div>
+        <ul class="price-list" style="color:#8a7f74">
+          <li style="color:#8a7f74">5 resets per month</li>
+          <li style="color:#8a7f74">All 4 reset steps</li>
+          <li style="color:#8a7f74">Basic session tracking</li>
+          <li style="color:#8a7f74">Dashboard with charts</li>
+          <li style="color:#4a4540;list-style:none">✗ AI weekly reports</li>
+          <li style="color:#4a4540;list-style:none">✗ Calendar integration</li>
+          <li style="color:#4a4540;list-style:none">✗ Tool integrations</li>
+        </ul>
+      </div>
+
+      <div style="background:var(--accent);border:1.5px solid var(--accent);border-radius:14px;padding:28px;position:relative">
+        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#c44d1a;color:white;font-size:10px;font-weight:700;padding:4px 12px;border-radius:100px;font-family:'JetBrains Mono',monospace;white-space:nowrap">MOST POPULAR</div>
+        <div class="price-plan" style="color:rgba(255,255,255,.7)">Pro Individual</div>
+        <div class="price-amount" style="color:white;font-family:'Instrument Serif',serif;font-size:44px">₹199</div>
+        <div class="price-period" style="color:rgba(255,255,255,.7)">per month · ₹1499/year</div>
+        <ul class="price-list" style="color:white">
+          <li>Unlimited resets</li>
+          <li>AI weekly insight reports</li>
+          <li>Google Calendar auto-detect</li>
+          <li>GitHub + Jira + Notion sync</li>
+          <li>Meeting drain analysis</li>
+          <li>Full session history export</li>
+          <li>Priority support</li>
+        </ul>
+      </div>
+
+      <div style="background:#1a1610;border:1.5px solid #2a2520;border-radius:14px;padding:28px">
+        <div class="price-plan" style="color:#6b6560">Team / B2B</div>
+        <div class="price-amount" style="color:#e8e0d0;font-family:'Instrument Serif',serif;font-size:44px">₹50</div>
+        <div class="price-period" style="color:#4a4540">per employee / month</div>
+        <ul class="price-list" style="color:#8a7f74">
+          <li style="color:#8a7f74">Everything in Pro</li>
+          <li style="color:#8a7f74">HR productivity dashboard</li>
+          <li style="color:#8a7f74">Team focus trends</li>
+          <li style="color:#8a7f74">Meeting cost calculator</li>
+          <li style="color:#8a7f74">Bulk billing (invoice)</li>
+          <li style="color:#8a7f74">Dedicated support</li>
+        </ul>
+      </div>
+    </div>
+
+    <br/>
+    <div class="g2" style="margin-top:16px">
+      <div class="dark-card">
+        <h3 style="color:#e8e0d0;margin-bottom:12px">📊 Revenue Projection (Month 6)</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#111009;border-radius:8px;border:1px solid #2a2520">
+            <span style="font-size:13px;color:#6b6560">500 Pro users × ₹199/mo</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#2d6e4e">₹99,500</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#111009;border-radius:8px;border:1px solid #2a2520">
+            <span style="font-size:13px;color:#6b6560">5 companies × 20 people × ₹50</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#2d6e4e">₹5,000</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#111009;border-radius:8px;border:1px solid #2a2520">
+            <span style="font-size:13px;color:#6b6560">2 companies × 100 people × ₹50</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#2d6e4e">₹10,000</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:14px;background:#162614;border-radius:8px;border:1px solid #2d6e4e;margin-top:4px">
+            <span style="font-size:14px;font-weight:700;color:#e8e0d0">Total Monthly</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:18px;color:#2d6e4e;font-weight:500">₹1,14,500</span>
+          </div>
+        </div>
+      </div>
+      <div class="dark-card">
+        <h3 style="color:#e8e0d0;margin-bottom:12px">🚀 Growth Strategy</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;color:#8a7f74">
+          <div style="padding:10px 14px;background:#111009;border-radius:8px;border:1px solid #2a2520">
+            <strong style="color:#e8e0d0">Week 1-2:</strong> Reddit launch (r/productivity, r/remotework, r/cscareerquestions). Twitter thread on neuroscience of context switching.
+          </div>
+          <div style="padding:10px 14px;background:#111009;border-radius:8px;border:1px solid #2a2520">
+            <strong style="color:#e8e0d0">Week 3-4:</strong> LinkedIn posts targeting engineering leads and HR managers. Product Hunt launch.
+          </div>
+          <div style="padding:10px 14px;background:#111009;border-radius:8px;border:1px solid #2a2520">
+            <strong style="color:#e8e0d0">Month 2:</strong> B2B cold outreach — 10 emails/day to tech companies. One client = ₹5,000+/month recurring.
+          </div>
+          <div style="padding:10px 14px;background:#111009;border-radius:8px;border:1px solid #2a2520">
+            <strong style="color:#e8e0d0">Month 3+:</strong> SEO content on "meeting productivity" and "deep work tips". Organic inbound.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 8: TECH STACK -->
+<div class="section" id="tech">
+  <div class="eyebrow">Technical Architecture</div>
+  <h2>How it's built</h2>
+  <p class="section-sub">35 files. No backend. No database. Entirely client-side React app that runs in the browser and talks directly to third-party APIs.</p>
+
+  <div class="g2">
+    <div>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px">Core Stack</p>
+      <div class="dark-section" style="padding:20px;border-radius:14px">
+        <div class="tech-grid">
+          <div class="tech-row"><span class="tech-label">Framework</span><span class="tech-val">React 18</span></div>
+          <div class="tech-row"><span class="tech-label">Build Tool</span><span class="tech-val">Vite</span></div>
+          <div class="tech-row"><span class="tech-label">Routing</span><span class="tech-val">React Router v6</span></div>
+          <div class="tech-row"><span class="tech-label">Charts</span><span class="tech-val">Recharts</span></div>
+          <div class="tech-row"><span class="tech-label">Database</span><span class="tech-val">localStorage only</span></div>
+          <div class="tech-row"><span class="tech-label">Backend</span><span class="tech-val">None (client-only)</span></div>
+          <div class="tech-row"><span class="tech-label">AI Provider</span><span class="tech-val">Groq Cloud</span></div>
+          <div class="tech-row"><span class="tech-label">AI Model</span><span class="tech-val">Llama 3.3 70B</span></div>
+          <div class="tech-row"><span class="tech-label">Payments</span><span class="tech-val">Razorpay</span></div>
+          <div class="tech-row"><span class="tech-label">Deployment</span><span class="tech-val">Vercel (free)</span></div>
+          <div class="tech-row"><span class="tech-label">Language</span><span class="tech-val">JavaScript (no TS)</span></div>
+          <div class="tech-row"><span class="tech-label">CSS</span><span class="tech-val">Custom (no UI lib)</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px">Pages & Components (35 files)</p>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8">
+        <div style="color:var(--accent)">pages/ (6 files)</div>
+        <div style="color:var(--mid);padding-left:12px">Landing · Onboarding · Reset · Dashboard · Privacy · IntegrationCallback</div>
+        <br/>
+        <div style="color:var(--accent)">components/ (10 files)</div>
+        <div style="color:var(--mid);padding-left:12px">Timer · ProgressBar · StepTransition · MeetingTypeSelector · FocusTimer · CalendarToast · CalendarConnect · WeeklyReport · IntegrationCard · PricingModal</div>
+        <br/>
+        <div style="color:var(--accent)">services/ (8 files)</div>
+        <div style="color:var(--mid);padding-left:12px">groqClient · aiInsights · calendarService · contextAssembler · githubService · jiraService · notionService · paywallService</div>
+        <br/>
+        <div style="color:var(--accent)">utils/ hooks/ constants/</div>
+        <div style="color:var(--mid);padding-left:12px">storage · calculations · useLocalStorage · useTimer · useCalendar · meetingTypes · routes</div>
+      </div>
+    </div>
+  </div>
+
+  <br/>
+
+  <!-- Build timeline -->
+  <div class="eyebrow">Launch Roadmap</div>
+  <h3 style="font-size:22px;margin-bottom:24px">From code to first paying user</h3>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-marker">Day 1–2</div>
+      <div class="tl-content">
+        <div class="tl-title">Bug testing + polish pass</div>
+        <div class="tl-desc">Test every flow end-to-end. Check mobile at 375px. Fix crashes. Confirm brain dump text actually gets deleted. Check AI fallbacks work when Groq is slow.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-marker">Day 3–4</div>
+      <div class="tl-content">
+        <div class="tl-title">Deploy to Vercel + live domain</div>
+        <div class="tl-desc">Push to GitHub → import in Vercel → add env variables → deploy. Add vercel.json for React Router. Update all OAuth redirect URLs to live domain.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-marker">Day 5–7</div>
+      <div class="tl-content">
+        <div class="tl-title">Reddit + Twitter + LinkedIn launch</div>
+        <div class="tl-desc">Post genuine stories about the problem in r/productivity, r/remotework, r/cscareerquestions. Twitter thread on meeting hangover neuroscience. Target 100 signups.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-marker">Week 2–3</div>
+      <div class="tl-content">
+        <div class="tl-title">Listen to feedback + add Razorpay</div>
+        <div class="tl-desc">Fix top 3 user complaints. Add the paywall (5 free resets/month). First ₹199 payment. Add Vercel Analytics and Microsoft Clarity for session recordings.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-marker">Month 2</div>
+      <div class="tl-content">
+        <div class="tl-title">B2B outreach — 10 emails/day</div>
+        <div class="tl-desc">Target engineering leads and HR managers at 20-100 person tech companies in India. One company deal at ₹50/employee/month = ₹1,000-5,000/month recurring. Land 3 = ₹3-15K/month.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-marker">Month 3+</div>
+      <div class="tl-content">
+        <div class="tl-title">SEO + Product Hunt + scale</div>
+        <div class="tl-desc">Write content on "meeting productivity" and "deep work after meetings." Product Hunt launch for a burst of global users. Keep compounding monthly recurring revenue.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="dark-section" style="padding:48px 40px;text-align:center">
+  <div style="max-width:600px;margin:0 auto">
+    <div style="font-family:'Instrument Serif',serif;font-size:36px;color:#e8e0d0;margin-bottom:16px">Focus<span style="color:var(--accent)">Reset</span></div>
+    <p style="font-size:14px;color:#6b6560;margin-bottom:24px">Meeting hangover cure for knowledge workers.<br/>Built with React + Groq + Llama 3.3 70B. No backend. No database. Just focus.</p>
+    <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:11px;color:#4a4540">
+      <span>React 18</span><span>·</span>
+      <span>Groq Cloud</span><span>·</span>
+      <span>Llama 3.3 70B</span><span>·</span>
+      <span>localStorage</span><span>·</span>
+      <span>Vercel</span><span>·</span>
+      <span>Razorpay</span><span>·</span>
+      <span>Made in India ☕</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
