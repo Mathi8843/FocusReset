@@ -2,6 +2,7 @@
   "rewrites": [
     { "source": "/api/github/token", "destination": "/api/github/token.js" },
     { "source": "/api/notion/token", "destination": "/api/notion/token.js" },
+    { "source": "/api/groq", "destination": "/api/groq.js" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

@@ -12,26 +12,26 @@
  * Model: llama-3.3-70b-versatile (fast, free tier available)
  */
 
-const GROK_URL   = import.meta.env.DEV
-  ? '/api-groq/openai/v1/chat/completions'
-  : 'https://api.groq.com/openai/v1/chat/completions'
-const GROK_MODEL = 'llama-3.3-70b-versatile'
 const API_KEY    = import.meta.env.VITE_GROK_API_KEY ?? ''
+const GROK_URL   = API_KEY
+  ? (import.meta.env.DEV ? '/api-groq/openai/v1/chat/completions' : 'https://api.groq.com/openai/v1/chat/completions')
+  : '/api/groq'
+const GROK_MODEL = 'llama-3.3-70b-versatile'
 const CACHE_KEY  = 'focusreset_weekly_report'
 
 /* ── Low-level Grok call ─────────────────────────────────────── */
 
 async function callGrok(messages, maxTokens = 1200) {
-  if (!API_KEY) {
-    throw new Error('VITE_GROK_API_KEY is not set. Add it to your .env file.')
+  const headers = {
+    'Content-Type': 'application/json',
+  }
+  if (API_KEY) {
+    headers['Authorization'] = `Bearer ${API_KEY}`
   }
 
   const response = await fetch(GROK_URL, {
     method:  'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': `Bearer ${API_KEY}`,
-    },
+    headers,
     body: JSON.stringify({
       model:      GROK_MODEL,
       messages,

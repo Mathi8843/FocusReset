@@ -1,6 +1,6 @@
 # FocusReset Vercel Deployment Guide
 
-This guide details how to deploy the FocusReset React + Vite SPA on Vercel, configure Vercel Serverless Functions to securely exchange OAuth tokens, and set up routing rewrites to prevent 404 errors on page reloads.
+This guide details how to deploy the FocusReset React + Vite SPA on Vercel, configure Vercel Serverless Functions to securely handle Groq AI and OAuth exchanges, and set up routing rewrites to prevent 404 errors on page reloads.
 
 ---
 
@@ -15,6 +15,7 @@ Create a `vercel.json` file in the root of the project with the following conten
   "rewrites": [
     { "source": "/api/github/token", "destination": "/api/github/token.js" },
     { "source": "/api/notion/token", "destination": "/api/notion/token.js" },
+    { "source": "/api/groq", "destination": "/api/groq.js" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
@@ -22,30 +23,61 @@ Create a `vercel.json` file in the root of the project with the following conten
 
 ---
 
-## 2. Secure OAuth Serverless Functions
+## 2. Secure Serverless Functions (`api/` folder)
 
-GitHub and Notion OAuth flows require exchanging a temporary `code` for a permanent access token using your client credentials. Because the client secret must **NEVER** be exposed in the browser, you must execute this exchange in a serverless backend environment.
+For production security, sensitive API keys and client secrets must **NEVER** be compiled into the frontend build. FocusReset runs these operations inside Vercel Serverless Functions.
 
-Create an `api/` directory in your project root and add the following two serverless functions:
+Create an `api/` directory in your project root and add the following files:
 
-### A. GitHub Token Exchange (`api/github/token.js`)
-Create `api/github/token.js` and paste this code:
+### A. Groq AI completions Proxy (`api/groq.js`)
+*This function forwards prompts to the Groq API securely using your backend API key.*
 
 ```javascript
 export default async function handler(req, res) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const { model, messages, max_tokens, temperature } = req.body;
+  const api_key = process.env.GROQ_API_KEY;
+
+  if (!api_key) {
+    return res.status(500).json({ error: 'Server configuration error: GROQ_API_KEY is missing on Vercel.' });
+  }
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${api_key}`
+      },
+      body: JSON.stringify({
+        model: model || 'llama-3.3-70b-versatile',
+        messages,
+        max_tokens: max_tokens || 1024,
+        temperature: temperature ?? 0.7
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      return res.status(response.status).json({ error: `Groq upstream error: ${errText}` });
+    }
+
+    const data = await response.json();
+    return res.status(200).json(data);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+}
+```
+
+### B. GitHub Token Exchange (`api/github/token.js`)
+*This function handles the OAuth authorization code exchange without exposing the GitHub client secret.*
+
+```javascript
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -84,24 +116,11 @@ export default async function handler(req, res) {
 }
 ```
 
-### B. Notion Token Exchange (`api/notion/token.js`)
-Create `api/notion/token.js` and paste this code:
+### C. Notion Token Exchange (`api/notion/token.js`)
+*Exchanges the Notion code securely.*
 
 ```javascript
 export default async function handler(req, res) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -147,52 +166,35 @@ export default async function handler(req, res) {
 
 ## 3. Environment Variables Configuration
 
-In the Vercel Dashboard, go to **Settings** > **Environment Variables** for your project and add the following variables:
+Configure the following environment variables in the **Settings** > **Environment Variables** tab of your Vercel project:
 
-| Variable Name | Client/Server | Source / Description |
+| Variable Name | Exposure | Source / Description |
 | :--- | :--- | :--- |
-| `VITE_SUPABASE_URL` | Client | Your Supabase project URL (from Settings > API) |
-| `VITE_SUPABASE_ANON_KEY` | Client | Your Supabase project Anon Key (from Settings > API) |
-| `VITE_GOOGLE_CLIENT_ID` | Client | Client ID for Google Identity Services / Calendar |
-| `VITE_MICROSOFT_CLIENT_ID` | Client | Client ID for Microsoft Outlook Calendar |
-| `VITE_GITHUB_CLIENT_ID` | Client | Client ID for GitHub OAuth |
-| `GITHUB_CLIENT_SECRET` | Server-Only | **(Secure)** Client Secret from GitHub Developer Settings |
-| `VITE_NOTION_CLIENT_ID` | Client | Client ID for Notion Integration |
-| `NOTION_CLIENT_SECRET` | Server-Only | **(Secure)** Client Secret from Notion Developer settings |
-| `VITE_RAZORPAY_KEY_ID` | Client | Razorpay key (Use test keys or production keys) |
+| `VITE_SUPABASE_URL` | Client | Your Supabase project API URL |
+| `VITE_SUPABASE_ANON_KEY` | Client | Your Supabase public Anon key |
+| `VITE_GOOGLE_CLIENT_ID` | Client | Google OAuth Client ID for calendar |
+| `VITE_MICROSOFT_CLIENT_ID` | Client | Microsoft OAuth Client ID for Outlook |
+| `VITE_GITHUB_CLIENT_ID` | Client | GitHub OAuth App Client ID |
+| `GITHUB_CLIENT_SECRET` | **Secure (Server-Only)** | GitHub App Client Secret |
+| `VITE_NOTION_CLIENT_ID` | Client | Notion Public Integration Client ID |
+| `NOTION_CLIENT_SECRET` | **Secure (Server-Only)** | Notion Integration Client Secret |
+| `GROQ_API_KEY` | **Secure (Server-Only)** | Groq API Key (`gsk_...`) |
+| `VITE_RAZORPAY_KEY_ID` | Client | Razorpay integration Public Key |
 
 ---
 
 ## 4. Deploying the Application
 
-### Option A: Via Vercel GitHub Integration (Recommended)
-1. Push your local FocusReset changes to a GitHub repository.
-2. Log in to the [Vercel Dashboard](https://vercel.com).
-3. Click **Add New** > **Project**.
-4. Import your FocusReset repository.
-5. In the configuration panel:
-   - **Framework Preset**: Select `Vite` (Vercel should auto-detect this).
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-6. Expand **Environment Variables** and add all the keys from Section 3 above.
-7. Click **Deploy**.
+### Option A: Via GitHub Integration (Recommended)
+1. Push your local FocusReset project (including the new `vercel.json` and `api/` folder) to your GitHub repository.
+2. Open the [Vercel Dashboard](https://vercel.com).
+3. Import your project repository.
+4. Vercel automatically detects the framework as `Vite`.
+5. Enter all environment variables in the settings step.
+6. Click **Deploy**.
 
 ### Option B: Via Vercel CLI
-If you prefer deploying directly from your terminal:
-1. Install the Vercel CLI globally:
-   ```bash
-   npm install -g vercel
-   ```
-2. Log in to your Vercel account:
-   ```bash
-   vercel login
-   ```
-3. Initialize the deployment from the project root:
-   ```bash
-   vercel
-   ```
-   Follow the prompts to link the project and configure the build commands.
-4. Set production environment variables in the Vercel dashboard and trigger a final release:
-   ```bash
-   vercel --prod
-   ```
+1. Open your terminal in the project root folder.
+2. Run `vercel` to connect and trigger a staging build.
+3. Configure the environment variables in the dashboard.
+4. Run `vercel --prod` to deploy to production.

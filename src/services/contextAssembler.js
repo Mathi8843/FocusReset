@@ -30,21 +30,25 @@ import {
    Uses the same VITE_GROK_API_KEY as aiInsights.js.
    Model: llama-3.3-70b-versatile (fast, great at JSON extraction)
    ---------------------------------------------------------------- */
-const GROQ_URL   = import.meta.env.DEV
-  ? '/api-groq/openai/v1/chat/completions'
-  : 'https://api.groq.com/openai/v1/chat/completions'
-const GROQ_MODEL = 'llama-3.3-70b-versatile'
 const API_KEY    = import.meta.env.VITE_GROK_API_KEY ?? ''
+const GROQ_URL   = API_KEY
+  ? (import.meta.env.DEV ? '/api-groq/openai/v1/chat/completions' : 'https://api.groq.com/openai/v1/chat/completions')
+  : '/api/groq'
+const GROQ_MODEL = 'llama-3.3-70b-versatile'
 
 /** Low-level Groq call — returns the assistant text or throws */
 async function callGroq({ systemPrompt, userContent, maxTokens = 512 }) {
   console.log('[FocusReset Debug] callGroq starting. GROQ_URL =', GROQ_URL, 'API_KEY present =', !!API_KEY);
+  const headers = {
+    'Content-Type':  'application/json',
+  }
+  if (API_KEY) {
+    headers['Authorization'] = `Bearer ${API_KEY}`
+  }
+
   const response = await fetch(GROQ_URL, {
     method:  'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': `Bearer ${API_KEY}`,
-    },
+    headers,
     body: JSON.stringify({
       model:      GROQ_MODEL,
       max_tokens: maxTokens,
