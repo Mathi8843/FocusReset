@@ -354,7 +354,7 @@ export async function generateStepSuggestions(context, forceRefresh = false) {
   if (intParts.length) integrationsBlock = intParts.join('\n')
 
   const systemPrompt = `You are the FocusReset AI — a post-meeting cognitive recovery assistant.
-Your job is to generate hyper-personalised, grounded task suggestions that help the user re-enter deep focus work immediately after a meeting.
+Your job is to generate hyper-personalised, grounded task suggestions that help the user recover and restore focus context immediately after a meeting.
 Output must be valid JSON only — no markdown, no explanation, no preamble.`
 
   const userContent = `Generate personalised focus task suggestions for this user who just finished a meeting.
@@ -375,19 +375,20 @@ ${integrationsBlock}
 ` : ''}
 ═══ INSTRUCTIONS ═══
 1. Return exactly 4 priorityTask cards.
-2. If brain dump context is available:
+2. PRIORITY ENGINE RULE (CRITICAL): Prioritize tasks that restore interrupted deep-work context. Focus on what the user was already deeply engaged in before the meeting (as described in the brain dump or recent history) rather than proposing brand-new shallow or reactive items, unless they are critical blockers. The primary goal is reducing cognitive reload cost for high-friction tasks.
+3. If brain dump context is available:
    - At least 2-3 cards MUST directly address real items from the brain dump (action items, unresolved thoughts, or blockers).
    - Use the actual names of people and projects from the brain dump in the card label and "why" field.
    - Example: if actionItems has "Reply to Rahul about API deadline", create a card like { id: "reply-rahul", label: "Reply to Rahul on API", ... }
-3. If Jira/Linear tickets are available, reference ticket keys (e.g. "PROJ-123") in relevant cards.
-4. For each priorityTask, generate exactly 3 entryTask items keyed by that task's id.
-5. Each entryTask MUST be an absurdly small, laughably easy first action completable in 60–90 seconds.
-   - Bad example: "Work on the API integration" (too vague, too big)
-   - Good example: "Open Slack and search for Rahul's name in the search bar"
-   - Good example: "Open the file, scroll to the last line you wrote, read it once"
-   - Good example: "Write just the function name on a blank line — nothing else"
-6. The "why" field: one short sentence grounding the card in the user's actual context.
-7. The "type" field: one of feature|bug-fix|writing|review|communication|planning|other
+4. If Jira/Linear tickets are available, reference ticket keys (e.g. "PROJ-123") in relevant cards.
+5. For each priorityTask, generate exactly 3 entryTask items keyed by that task's id.
+6. ENTRY TASK LANGUAGE RULE (CRITICAL):
+   - Each entryTask MUST be an absurdly small, low-friction action completable in 60-90 seconds.
+   - Avoid robotic, overly literal instructions (e.g. DO NOT say "Open Slack and search for Rahul's name" or "Open browser and click link").
+   - Write in a natural, calm, human tone that eases the brain in (e.g., say "Re-read the deployment blocker message from Rahul" or "Open the file and re-read the last three lines you wrote").
+   - Do not use corporate speak, productivity slogans, or motivational jargon.
+7. The "why" field: one short sentence grounding the card in the user's actual context.
+8. The "type" field: one of feature|bug-fix|writing|review|communication|planning|other
 
 Output format (strict JSON, no trailing commas):
 {

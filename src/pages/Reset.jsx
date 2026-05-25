@@ -100,8 +100,8 @@ function BrainDump({ onDone, meetingName, hangoverScore }) {
 
         <h2 className="step-heading">Brain Dump</h2>
         <p className="step-description">
-          What's still running in your mind from that meeting?{' '}
-          <em>Just dump it all out.</em>
+          Release the meeting context. What's still running in your mind?{' '}
+          <em>Write it down to let it go.</em>
         </p>
 
         <textarea
@@ -171,7 +171,8 @@ function PriorityReset({ onDone, aiTasks }) {
         <span className="badge badge-accent">Step 2 of 4 · 1 minute</span>
         <h2 className="step-heading">Priority Reset</h2>
         <p className="step-description">
-          What is the <em>single most important thing</em> you need to do in the next 90 minutes?
+          Your brain is probably still carrying meeting context — that is completely normal.
+          Let's reduce the restart friction. What is the <em>single most important task</em> you were focused on before?
         </p>
 
         {isAI && (
@@ -264,7 +265,7 @@ function EntryTask({ taskId, onDone, aiEntryTasks }) {
         <span className="badge badge-accent">Step 3 of 4 · 2 minutes</span>
         <h2 className="step-heading">Entry Task</h2>
         <p className="step-description">
-          Choose one tiny action to <em>ease yourself in</em> — no pressure to do the whole thing.
+          A tiny step first. Choose one absurdly small action to <em>ease your brain back in</em>. No pressure to write code or complete the work yet.
         </p>
 
         {isAI && (

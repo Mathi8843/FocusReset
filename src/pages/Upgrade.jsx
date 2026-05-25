@@ -523,6 +523,24 @@ export default function Upgrade() {
             transform: scale(1) translateY(0);
           }
         }
+
+        @media (max-width: 640px) {
+          .upgrade-page {
+            padding-top: var(--space-xl);
+            padding-bottom: var(--space-xl);
+            gap: 24px;
+          }
+          .upgrade-header h1 {
+            font-size: 2.25rem;
+          }
+          .pricing-tiers {
+            gap: 16px;
+          }
+          .pricing-card {
+            padding: 24px 16px;
+            gap: 16px;
+          }
+        }
       `}</style>
     </div>
   )
