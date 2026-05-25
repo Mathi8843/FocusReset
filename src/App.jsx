@@ -114,7 +114,7 @@ function Nav() {
         {user ? (
           <>
             <li>{renderPlanBadge()}</li>
-            {plan === 'free' && <li><Link to="/upgrade">Upgrade Plan</Link></li>}
+            {/* {plan === 'free' && <li><Link to="/upgrade">Upgrade Plan</Link></li>} */}
             {isAdmin && <li><Link to="/admin">Manage Team</Link></li>}
             <li><Link to="/profile">Profile</Link></li>
             <li><Link to="/dashboard">Dashboard</Link></li>
