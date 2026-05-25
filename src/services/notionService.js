@@ -28,7 +28,7 @@ const NOTION_VERSION = '2022-06-28'
 export function connectNotion() {
   if (!CLIENT_ID) {
     alert('Notion Client ID is not configured.\nAdd VITE_NOTION_CLIENT_ID to your .env file.')
-    return
+    throw new Error('Notion Client ID is not configured.')
   }
   const state = crypto.randomUUID()
   sessionStorage.setItem('notion_oauth_state', state)

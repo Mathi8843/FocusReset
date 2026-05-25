@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { getSessions, getProfile } from '../utils/storage.js'
+import { supabase } from '../services/supabaseClient.js'
+import { useAuth } from '../contexts/AuthContext.jsx'
+import { getSessions, getProfile, migrateLocalStorageToSupabase } from '../utils/storage.js'
 import {
   getThisWeekSessions, getLastWeekSessions, getStreak, getAverageRecoveryTime,
   getTotalFocusMinutes, getMeetingTypeDrainRanking, getSessionsPerDay,
@@ -230,8 +232,91 @@ function Section({ id, title, sub, children, action }) {
    DASHBOARD PAGE
 ================================================================ */
 export default function Dashboard() {
-  const [sessions] = useState(() => getSessions())
-  const [profile] = useState(() => getProfile())
+  const { user } = useAuth()
+  const [sessions, setSessions] = useState([])
+  const [profile,  setProfile]  = useState(null)
+  const [teamData, setTeamData] = useState(null)
+  const [dataLoading, setDataLoading] = useState(true)
+
+  /* ── Load sessions + profile from Supabase (with localStorage fallback) ── */
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadData() {
+      try {
+        // Run migration first (no-op if already done)
+        await migrateLocalStorageToSupabase()
+
+        const [fetchedSessions, fetchedProfile] = await Promise.all([
+          getSessions(),
+          getProfile(),
+        ])
+
+        if (!cancelled) {
+          setSessions(fetchedSessions)
+          setProfile(fetchedProfile)
+        }
+
+        // Load B2B team comparisons if authenticated
+        if (user) {
+          const { data: memberOf, error: memberErr } = await supabase
+            .from('team_members')
+            .select(`
+              team_id,
+              role,
+              teams ( id, name )
+            `)
+            .eq('user_id', user.id)
+            .maybeSingle()
+
+          if (!memberErr && memberOf && !cancelled) {
+            const { data: teamMates } = await supabase
+              .from('team_members')
+              .select('user_id')
+              .eq('team_id', memberOf.team_id)
+
+            if (teamMates && teamMates.length > 0) {
+              const mateIds = teamMates.map(m => m.user_id)
+
+              // Monday cutoff for current week
+              const cutoff = new Date()
+              const dayOfWeek = cutoff.getDay()
+              const monday = new Date(cutoff)
+              monday.setDate(cutoff.getDate() - ((dayOfWeek + 6) % 7))
+              monday.setHours(0, 0, 0, 0)
+
+              const { data: teamSessions } = await supabase
+                .from('sessions')
+                .select('user_id, created_at, focus_minutes, completed')
+                .in('user_id', mateIds)
+                .gte('created_at', monday.toISOString())
+
+              if (teamSessions && !cancelled) {
+                const memberCount = mateIds.length
+                const completedResets = teamSessions.filter(s => s.completed).length
+                const totalFocus = teamSessions.reduce((sum, s) => sum + (s.focus_minutes || 0), 0)
+
+                setTeamData({
+                  teamName: memberOf.teams.name,
+                  teamId: memberOf.team_id,
+                  memberCount,
+                  avgResets: Math.round((completedResets / memberCount) * 10) / 10,
+                  avgFocus: Math.round(totalFocus / memberCount),
+                })
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[Dashboard] data load error:', err)
+      } finally {
+        if (!cancelled) setDataLoading(false)
+      }
+    }
+
+    loadData()
+    return () => { cancelled = true }
+  }, [])
 
   // Integrations states
   const [githubData, setGithubData] = useState(() => getStoredGithubData())
@@ -273,6 +358,10 @@ export default function Dashboard() {
     setGithubSyncStatus('connecting')
     try {
       connectGithub()
+      // Fallback: reset status if browser doesn't redirect
+      setTimeout(() => {
+        setGithubSyncStatus(prev => prev === 'connecting' ? 'error' : prev)
+      }, 6000)
     } catch (err) {
       console.error(err)
       setGithubSyncStatus('error')
@@ -302,6 +391,10 @@ export default function Dashboard() {
     setNotionSyncStatus('connecting')
     try {
       connectNotion()
+      // Fallback: reset status if browser doesn't redirect
+      setTimeout(() => {
+        setNotionSyncStatus(prev => prev === 'connecting' ? 'error' : prev)
+      }, 6000)
     } catch (err) {
       console.error(err)
       setNotionSyncStatus('error')
@@ -459,6 +552,10 @@ export default function Dashboard() {
     setOutlookSyncStatus('connecting')
     try {
       connectOutlook()
+      // Fallback: reset status if browser doesn't redirect
+      setTimeout(() => {
+        setOutlookSyncStatus(prev => prev === 'connecting' ? 'error' : prev)
+      }, 6000)
     } catch (err) {
       console.error(err)
       setOutlookSyncStatus('error')
@@ -537,9 +634,29 @@ export default function Dashboard() {
         </div>
 
         {/* ================================================================
-            EMPTY STATE
+            LOADING SKELETON
         ================================================================ */}
-        {isEmpty ? (
+        {dataLoading ? (
+          <div className="db-skeleton-wrapper animate-fade-in" aria-busy="true" aria-label="Loading dashboard data">
+            <div className="db-stats-grid">
+              {[1,2,3,4,5].map(i => (
+                <div key={i} className="card db-stat db-skeleton-card">
+                  <div className="db-skel db-skel-sm" />
+                  <div className="db-skel db-skel-lg" />
+                  <div className="db-skel db-skel-sm" />
+                </div>
+              ))}
+            </div>
+            <div className="card db-skeleton-chart">
+              <div className="db-skel db-skel-sm" style={{ width: '140px', marginBottom: '16px' }} />
+              <div style={{ display:'flex', alignItems:'flex-end', gap:'8px', height:'120px' }}>
+                {[40,70,55,90,30,80,65].map((h,i) => (
+                  <div key={i} className="db-skel" style={{ flex:1, height:`${h}%`, borderRadius:'4px 4px 0 0' }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : isEmpty ? (
           <div className="db-empty animate-fade-in">
             <EmptyIllustration />
             <h2 className="db-empty-title">No sessions yet</h2>
@@ -592,6 +709,82 @@ export default function Dashboard() {
                 />
               </div>
             </Section>
+
+            {/* ================================================================
+                YOUR TEAM COMPARATIVE ANALYTICS
+            ================================================================ */}
+            {teamData && (
+              <Section id="team-insights" title={`Your Team: ${teamData.teamName}`} sub="How your weekly recovery compares to the team average">
+                <div className="card team-comparison-card animate-fade-in">
+                  <div className="team-comparison-grid">
+                    {/* Stat 1: Completed Resets */}
+                    <div className="comp-item">
+                      <div className="comp-header">
+                        <h4>Completed Resets</h4>
+                        <span className="comp-label">This Week</span>
+                      </div>
+                      <div className="comp-bars-container">
+                        <div className="comp-bar-row">
+                          <span className="bar-label">You</span>
+                          <div className="bar-wrapper">
+                            <div className="bar-fill bar-fill-personal" style={{ width: `${Math.min(100, (thisWeek.length / Math.max(1, thisWeek.length, teamData.avgResets)) * 100)}%` }} />
+                          </div>
+                          <span className="bar-value">{thisWeek.length}</span>
+                        </div>
+                        <div className="comp-bar-row">
+                          <span className="bar-label">Team Avg</span>
+                          <div className="bar-wrapper">
+                            <div className="bar-fill bar-fill-team" style={{ width: `${Math.min(100, (teamData.avgResets / Math.max(1, thisWeek.length, teamData.avgResets)) * 100)}%` }} />
+                          </div>
+                          <span className="bar-value">{teamData.avgResets}</span>
+                        </div>
+                      </div>
+                      <div className="comp-footer">
+                        {thisWeek.length >= teamData.avgResets ? (
+                          <span className="text-success" style={{ fontWeight: 600 }}>⚡ You are meeting or exceeding the team average ({teamData.avgResets} resets)</span>
+                        ) : (
+                          <span className="text-muted" style={{ fontSize: '0.8rem' }}>💡 Complete more resets to match the team average of {teamData.avgResets}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Divider for desktop */}
+                    <div className="comp-divider" />
+
+                    {/* Stat 2: Focus Minutes Recovered */}
+                    <div className="comp-item">
+                      <div className="comp-header">
+                        <h4>Focus Minutes Recovered</h4>
+                        <span className="comp-label">This Week</span>
+                      </div>
+                      <div className="comp-bars-container">
+                        <div className="comp-bar-row">
+                          <span className="bar-label">You</span>
+                          <div className="bar-wrapper">
+                            <div className="bar-fill bar-fill-personal-alt" style={{ width: `${Math.min(100, (focusMinThisWeek / Math.max(1, focusMinThisWeek, teamData.avgFocus)) * 100)}%` }} />
+                          </div>
+                          <span className="bar-value">{focusMinThisWeek}m</span>
+                        </div>
+                        <div className="comp-bar-row">
+                          <span className="bar-label">Team Avg</span>
+                          <div className="bar-wrapper">
+                            <div className="bar-fill bar-fill-team" style={{ width: `${Math.min(100, (teamData.avgFocus / Math.max(1, focusMinThisWeek, teamData.avgFocus)) * 100)}%` }} />
+                          </div>
+                          <span className="bar-value">{teamData.avgFocus}m</span>
+                        </div>
+                      </div>
+                      <div className="comp-footer">
+                        {focusMinThisWeek >= teamData.avgFocus ? (
+                          <span className="text-success" style={{ fontWeight: 600 }}>🎯 Outperforming team average focus time ({teamData.avgFocus}m)</span>
+                        ) : (
+                          <span className="text-muted" style={{ fontSize: '0.8rem' }}>💡 Try to recover {teamData.avgFocus - focusMinThisWeek}m more to reach the team average</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Section>
+            )}
 
             {/* ================================================================
                 SECTION 2 — Bar Chart
@@ -1208,6 +1401,23 @@ export default function Dashboard() {
           margin-top: 8px;
         }
 
+        /* Skeleton loader */
+        .db-skeleton-wrapper { display: flex; flex-direction: column; gap: 24px; padding-bottom: 40px; }
+        .db-skeleton-chart { padding: 24px; }
+        .db-skeleton-card { gap: 12px; padding: 24px; }
+        .db-skel {
+          background: linear-gradient(90deg, var(--color-border) 25%, var(--color-bg) 50%, var(--color-border) 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.4s infinite;
+          border-radius: var(--radius-sm);
+        }
+        .db-skel-sm  { height: 12px; width: 60%; }
+        .db-skel-lg  { height: 36px; width: 80%; }
+        @keyframes shimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+
         /* Responsive */
         @media (max-width: 900px) { .db-stats-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 640px) {
@@ -1221,6 +1431,29 @@ export default function Dashboard() {
         @media (max-width: 420px) {
           .db-stats-grid { grid-template-columns: 1fr; }
         }
+
+        /* Team Comparison Styles */
+        .team-comparison-card { padding: 28px; }
+        .team-comparison-grid { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 28px; }
+        @media (max-width: 768px) {
+          .team-comparison-grid { grid-template-columns: 1fr; gap: 24px; }
+          .comp-divider { display: none; }
+        }
+        .comp-item { display: flex; flex-direction: column; gap: 16px; }
+        .comp-header { display: flex; justify-content: space-between; align-items: baseline; }
+        .comp-header h4 { font-family: var(--font-display); font-size: 1.3rem; margin: 0; }
+        .comp-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-muted); font-weight: 700; }
+        .comp-bars-container { display: flex; flex-direction: column; gap: 12px; }
+        .comp-bar-row { display: flex; align-items: center; gap: 12px; font-size: 0.85rem; }
+        .bar-label { width: 80px; color: var(--color-muted); font-weight: 600; text-align: right; }
+        .bar-wrapper { flex-grow: 1; height: 12px; background: rgba(26, 20, 16, 0.05); border-radius: var(--radius-full); overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: var(--radius-full); transition: width 0.5s ease-out; }
+        .bar-fill-personal { background: var(--color-accent); }
+        .bar-fill-personal-alt { background: #e88d26; }
+        .bar-fill-team { background: var(--color-success); }
+        .bar-value { width: 50px; font-family: var(--font-mono); font-weight: 700; color: var(--color-text); }
+        .comp-footer { font-size: 0.82rem; margin-top: 4px; }
+        .comp-divider { background: var(--color-border); height: 100%; width: 1px; }
       `}</style>
     </div>
   )

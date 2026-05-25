@@ -183,7 +183,7 @@ export async function fetchCalendarData(token) {
       attendees:   (e.attendees?.length ?? 0),
     }))
 
-  const sessions = getSessions()
+  const sessions = await getSessions()
   const meetings = meetingsBase.map(meeting => ({
     ...meeting,
     hangoverScore: calculateHangoverScore({

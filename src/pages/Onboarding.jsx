@@ -214,7 +214,7 @@ function StepProjects({ value, onChange, onNext, onBack }) {
 }
 
 /* Step 5 — Work Pattern */
-function StepWorkPattern({ focusPeak, onFocusPeakChange, meetingsPerDay, onMeetingsChange, onNext, onBack }) {
+function StepWorkPattern({ focusPeak, onFocusPeakChange, meetingsPerDay, onMeetingsChange, onNext, onBack, saving }) {
   const canNext = focusPeak && meetingsPerDay
   return (
     <div className="ob-step-content">
@@ -242,8 +242,12 @@ function StepWorkPattern({ focusPeak, onFocusPeakChange, meetingsPerDay, onMeeti
           </button>
         ))}
       </div>
-      <button className="btn btn-primary btn-lg ob-next-btn" onClick={onNext} disabled={!canNext}>
-        Finish Setup →
+      <button
+        className="btn btn-primary btn-lg ob-next-btn"
+        onClick={onNext}
+        disabled={!canNext || saving}
+      >
+        {saving ? 'Saving…' : 'Finish Setup →'}
       </button>
     </div>
   )
@@ -286,6 +290,7 @@ export default function Onboarding() {
   const [step, setStep]             = useState(1)
   const [direction, setDirection]   = useState('forward')
   const [done, setDone]             = useState(false)
+  const [saving, setSaving]         = useState(false)
 
   /* Form state */
   const [name, setName]             = useState('')
@@ -305,7 +310,8 @@ export default function Onboarding() {
     setStep(s => s - 1)
   }
 
-  function handleFinish() {
+  async function handleFinish() {
+    setSaving(true)
     const profile = {
       name: name.trim(),
       role,
@@ -316,8 +322,14 @@ export default function Onboarding() {
       onboardingCompleted: true,
       onboardingDate: new Date().toISOString(),
     }
-    saveProfile(profile)
-    setDone(true)
+    try {
+      await saveProfile(profile)
+    } catch (err) {
+      console.warn('[Onboarding] saveProfile error (non-fatal):', err)
+    } finally {
+      setSaving(false)
+      setDone(true)
+    }
   }
 
   return (
@@ -344,6 +356,7 @@ export default function Onboarding() {
                   focusPeak={focusPeak}         onFocusPeakChange={setFocusPeak}
                   meetingsPerDay={meetingsPerDay} onMeetingsChange={setMeetings}
                   onNext={handleFinish}          onBack={goBack}
+                  saving={saving}
                 />
               )}
             </StepPane>

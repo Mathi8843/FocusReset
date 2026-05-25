@@ -27,7 +27,7 @@ const SCOPES        = 'read:user repo'
 export function connectGithub() {
   if (!CLIENT_ID) {
     alert('GitHub Client ID is not configured.\nAdd VITE_GITHUB_CLIENT_ID to your .env file.')
-    return
+    throw new Error('GitHub Client ID is not configured.')
   }
   const state = crypto.randomUUID()
   sessionStorage.setItem('github_oauth_state', state)

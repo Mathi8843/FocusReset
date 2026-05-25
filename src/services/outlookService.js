@@ -43,7 +43,7 @@ const GRAPH_URL = import.meta.env.DEV
 export function connectOutlook() {
   if (!CLIENT_ID) {
     alert('Microsoft Client ID is not configured.\nAdd VITE_MICROSOFT_CLIENT_ID to your .env file.')
-    return
+    throw new Error('Microsoft Client ID is not configured.')
   }
 
   const state = crypto.randomUUID()
@@ -137,7 +137,7 @@ export async function fetchOutlookData(token) {
       attendees: (e.attendees?.length ?? 0),
     }))
 
-  const sessions = getSessions()
+  const sessions = await getSessions()
   const meetings = meetingsBase.map(meeting => ({
     ...meeting,
     hangoverScore: calculateHangoverScore({

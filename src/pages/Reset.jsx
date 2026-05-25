@@ -12,6 +12,9 @@ import {
   generateStepSuggestions,
 } from '../services/contextAssembler.js'
 import { calculateHangoverScore, formatHangoverScore } from '../utils/hangoverScore.js'
+import { useAuth } from '../contexts/AuthContext.jsx'
+import { checkPaywallStatus } from '../services/paywallService.js'
+import PricingModal from '../components/PricingModal.jsx'
 
 /* ============================================================
    DATA CONSTANTS
@@ -416,6 +419,12 @@ function CompletionScreen({ task, meetingType, hangoverScore, onReset }) {
    RESET PAGE — Orchestrates the full 4-step flow
    ============================================================ */
 export default function Reset({ prefillMeeting, onPrefillConsumed }) {
+  const { user } = useAuth()
+  const [paywallChecked, setPaywallChecked] = useState(false)
+  const [paywallAllowed, setPaywallAllowed] = useState(true)
+  const [paywallData, setPaywallData] = useState({ plan: 'free', count: 0, limit: 100 })
+  const [showPricingModal, setShowPricingModal] = useState(false)
+
   /* Phase: 'meeting-select' → 'step-1' → 'step-2' → 'step-3' → 'step-4' → 'complete' */
   const [phase, setPhase] = useState('meeting-select')
   const [meetingType, setMeetingType] = useState(() => prefillMeeting?.meetingType || '')
@@ -438,11 +447,43 @@ export default function Reset({ prefillMeeting, onPrefillConsumed }) {
   // Ref to store brain dump context for feeding into suggestions
   const brainDumpContextRef = useRef(null)
 
+  /* Check paywall on mount/user change */
+  useEffect(() => {
+    if (user?.id) {
+      checkPaywallStatus(user.id)
+        .then(res => {
+          setPaywallAllowed(res.allowed)
+          setPaywallData({ plan: res.plan, count: res.count, limit: res.limit })
+          if (!res.allowed) {
+            setShowPricingModal(true)
+          }
+          setPaywallChecked(true)
+        })
+        .catch(err => {
+          console.error('[Reset] failed to check paywall status:', err)
+          setPaywallChecked(true)
+        })
+    } else {
+      setPaywallChecked(true)
+    }
+  }, [user])
+
   /* Apply calendar pre-fill on first mount */
   useEffect(() => {
     if (onPrefillConsumed) onPrefillConsumed()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  function handleUpgradeSuccess(newPlan) {
+    setPaywallAllowed(true)
+    setPaywallData(prev => ({ ...prev, plan: newPlan }))
+    setShowPricingModal(false)
+  }
+
+  function handlePricingModalClose() {
+    setShowPricingModal(false)
+    navigate('/dashboard')
+  }
 
   /* Step timing tracking */
   const sessionStartRef = useRef(0)
@@ -490,7 +531,8 @@ export default function Reset({ prefillMeeting, onPrefillConsumed }) {
     })
       .then(ctx => {
         console.log('[FocusReset Debug] handleMeetingContinue: context assembled:', ctx);
-        return generateStepSuggestions(ctx);
+        // forceRefresh=true so a stale same-day cache doesn't serve old suggestions
+        return generateStepSuggestions(ctx, true);
       })
       .then(suggestions => {
         console.log('[FocusReset Debug] handleMeetingContinue: suggestions generated:', suggestions);
@@ -525,7 +567,9 @@ export default function Reset({ prefillMeeting, onPrefillConsumed }) {
             .then(fullCtx => {
               const enriched = { ...fullCtx, brainDump: ctx }
               console.log('[FocusReset Debug] handleBrainDumpDone: full context assembled for enrichment:', enriched);
-              return generateStepSuggestions(enriched)
+              // forceRefresh=true so the pre-warmed generic suggestions are
+              // replaced with brain-dump-personalised ones.
+              return generateStepSuggestions(enriched, true)
             })
         })
         .then(suggestions => {
@@ -553,12 +597,12 @@ export default function Reset({ prefillMeeting, onPrefillConsumed }) {
     setPhase('step-4')
   }
 
-  function handleSessionComplete({ earlyExit }) {
+  async function handleSessionComplete({ earlyExit }) {
     recordStepTiming('focusTimer')
     const totalDuration = Math.round((Date.now() - sessionStartRef.current) / 1000)
 
-    /* Save session to localStorage */
-    saveSession({
+    /* Save session — writes localStorage immediately, Supabase in background */
+    await saveSession({
       date: new Date().toISOString(),
       meetingType,
       meetingName,
@@ -584,6 +628,27 @@ export default function Reset({ prefillMeeting, onPrefillConsumed }) {
     setAiSuggestions(null)
     brainDumpContextRef.current = null
     stepTimingsRef.current = {}
+  }
+
+  if (!paywallChecked) {
+    return (
+      <div className="reset-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <div style={{ textAlign: 'center', color: 'var(--color-muted)' }}>
+          <p>Initializing reset protocol...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (showPricingModal) {
+    return (
+      <PricingModal
+        isOpen={showPricingModal}
+        onClose={handlePricingModalClose}
+        currentCount={paywallData.count}
+        onSuccess={handleUpgradeSuccess}
+      />
+    )
   }
 
   return (

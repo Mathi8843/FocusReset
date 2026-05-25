@@ -441,6 +441,35 @@ textarea::placeholder, input::placeholder {
   opacity: 1;
 }
 
+.plan-badge {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+}
+
+.plan-badge-free {
+  background: rgba(107, 95, 82, 0.1);
+  color: var(--color-muted);
+  border: 1px solid var(--color-border);
+}
+
+.plan-badge-pro {
+  background: rgba(232, 93, 38, 0.1);
+  color: var(--color-accent);
+  border: 1px solid rgba(232, 93, 38, 0.2);
+}
+
+.plan-badge-team {
+  background: rgba(45, 110, 78, 0.1);
+  color: var(--color-success);
+  border: 1px solid rgba(45, 110, 78, 0.2);
+}
+
 /* ============================================================
    PAGE WRAPPER
    ============================================================ */
@@ -500,3 +529,220 @@ textarea::placeholder, input::placeholder {
     gap: var(--space-md);
   }
 }
+
+/* ============================================================
+   AUTH PAGES  (Login & Register)
+   ============================================================ */
+
+/* Full-page centering wrapper */
+.auth-page {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl) var(--space-lg);
+  min-height: 100vh;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(232,93,38,0.06) 0%, transparent 70%),
+              var(--color-bg);
+}
+
+/* Card container */
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Logo + title block */
+.auth-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  text-align: center;
+}
+
+.auth-logo {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--color-text);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.auth-logo span {
+  color: var(--color-accent);
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  margin-top: var(--space-sm);
+}
+
+.auth-subtitle {
+  font-size: 0.9375rem;
+  color: var(--color-muted);
+  margin: 0;
+}
+
+/* Error banner */
+.auth-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background-color: rgba(185, 28, 28, 0.07);
+  border: 1px solid rgba(185, 28, 28, 0.25);
+  border-radius: var(--radius-md);
+  color: #b91c1c;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.auth-error svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Success / info banner */
+.auth-success {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background-color: rgba(45, 110, 78, 0.08);
+  border: 1px solid rgba(45, 110, 78, 0.25);
+  border-radius: var(--radius-md);
+  color: var(--color-success);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.auth-success svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Google button */
+.btn-google {
+  gap: 10px;
+  font-size: 0.9375rem;
+}
+
+/* "or continue with email" divider */
+.auth-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-border);
+}
+
+/* Form layout */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Individual field */
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* email / password inputs inherit global textarea/input styles but need type=email/password */
+.auth-form input[type="email"],
+.auth-form input[type="password"] {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--color-text);
+  background-color: var(--color-bg-card);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  width: 100%;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.auth-form input[type="email"]:focus,
+.auth-form input[type="password"]:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(232, 93, 38, 0.12);
+}
+
+.auth-form input::placeholder {
+  color: var(--color-muted);
+  opacity: 0.7;
+}
+
+/* Footer link line */
+.auth-footer {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  margin: 0;
+}
+
+.auth-footer a {
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+/* ── Spinners ─────────────────────────────────────────────── */
+
+/* Full-page auth loading spinner */
+.auth-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+/* Inline small spinner (inside button) */
+.auth-spinner-sm {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Responsive adjustments ──────────────────────────────── */
+@media (max-width: 640px) {
+  .auth-card {
+    padding: var(--space-lg);
+    gap: var(--space-md);
+  }
+}
+

@@ -80,8 +80,8 @@ async function callGroq({ systemPrompt, userContent, maxTokens = 512 }) {
    { meetingType, meetingName, startTime }
 ================================================================ */
 export async function assembleFullContext(currentSession = null) {
-  const profile  = getProfile() ?? {}
-  const sessions = getSessions()
+  const profile  = (await getProfile()) ?? {}
+  const sessions = await getSessions()
   const today    = toDateKey(new Date())
 
   /* ── User profile ───────────────────────────────────────────── */
@@ -180,6 +180,8 @@ export async function extractBrainDumpContext(brainDumpText) {
     emotionalTone:      'neutral',
     deadlinesMentioned: [],
     blockers:           [],
+    actionItems:        [],   // concrete follow-ups extracted from dump
+    unresolvedThoughts: [],   // worries / vague anxieties still lingering
   }
 
   if (!brainDumpText || brainDumpText.trim().length < 20) return defaults
@@ -195,24 +197,26 @@ Return nothing else — no markdown, no explanation, just the raw JSON object.`
   const userContent = `Analyze this brain dump from someone who just finished a meeting.
 Extract ONLY in JSON format:
 {
-  "projectsMentioned": ["string"],
-  "peopleNames": ["string"],
-  "taskTypes": ["bug-fix"|"feature"|"writing"|"review"|"communication"|"planning"|"other"],
-  "emotionalTone": "stressed" | "neutral" | "energized",
-  "deadlinesMentioned": ["string"],
-  "blockers": ["string"]
+  "projectsMentioned": ["string — project or product names mentioned"],
+  "peopleNames": ["string — first names or full names of people mentioned"],
+  "taskTypes": ["one of: bug-fix, feature, writing, review, communication, planning, other"],
+  "emotionalTone": "stressed | neutral | energized",
+  "deadlinesMentioned": ["string — any deadline or due-date phrasing, verbatim or paraphrased"],
+  "blockers": ["string — things that are blocking progress, verbatim or paraphrased"],
+  "actionItems": ["string — concrete follow-up tasks the person needs to do, e.g. 'Reply to Rahul about API deadline'"],
+  "unresolvedThoughts": ["string — worries, anxieties or vague lingering concerns, e.g. 'Manager seemed unhappy with delay'"]
 }
 Return ONLY the JSON. No explanation.
 Brain dump: ${brainDumpText}`
 
   try {
-    /* Race the API call against a 2-second timeout */
+    /* Race the API call against a 4-second timeout */
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Brain dump extraction timed out')), 4000)
     )
 
     console.log('[FocusReset Debug] extractBrainDumpContext calling API...');
-    const apiPromise = callGroq({ systemPrompt, userContent, maxTokens: 400 })
+    const apiPromise = callGroq({ systemPrompt, userContent, maxTokens: 500 })
     const raw = await Promise.race([apiPromise, timeoutPromise])
 
     console.log('[FocusReset Debug] extractBrainDumpContext raw response:', raw);
@@ -230,6 +234,8 @@ Brain dump: ${brainDumpText}`
                             ? parsed.emotionalTone : 'neutral',
       deadlinesMentioned: Array.isArray(parsed.deadlinesMentioned)  ? parsed.deadlinesMentioned  : [],
       blockers:           Array.isArray(parsed.blockers)            ? parsed.blockers            : [],
+      actionItems:        Array.isArray(parsed.actionItems)         ? parsed.actionItems         : [],
+      unresolvedThoughts: Array.isArray(parsed.unresolvedThoughts)  ? parsed.unresolvedThoughts  : [],
     }
   } catch (err) {
     console.error('[FocusReset Debug] extractBrainDumpContext failed:', err.message, err)
@@ -243,7 +249,14 @@ Brain dump: ${brainDumpText}`
    Generates personalised Step 2 priority tasks and Step 3
    micro-tasks. Results are cached in sessionStorage for 10 minutes.
 ================================================================ */
-export async function generateStepSuggestions(context) {
+/**
+ * generateStepSuggestions(context, forceRefresh?)
+ *
+ * forceRefresh = true → ignores sessionStorage cache and always calls the API.
+ * This should be set to true whenever a new brain dump has just been extracted,
+ * so the old pre-warmed generic suggestions are replaced with personalised ones.
+ */
+export async function generateStepSuggestions(context, forceRefresh = false) {
   /* Default fallback suggestions — always works without AI */
   const defaults = {
     priorityTasks: [
@@ -265,53 +278,133 @@ export async function generateStepSuggestions(context) {
     return defaults
   }
 
-  /* Cache key includes today's date so suggestions refresh daily */
+  /* ── Cache logic ────────────────────────────────────────────── */
+  // Skip cache read if:
+  //   a) forceRefresh is explicitly requested, OR
+  //   b) brainDump context is present (brain dump was just processed)
+  const hasBrainDump = !!(context.brainDump &&
+    (
+      (context.brainDump.actionItems?.length > 0) ||
+      (context.brainDump.unresolvedThoughts?.length > 0) ||
+      (context.brainDump.blockers?.length > 0) ||
+      (context.brainDump.peopleNames?.length > 0)
+    )
+  )
+  const skipCacheRead = forceRefresh || hasBrainDump
+
   const today    = toDateKey(new Date())
   const cacheKey = `focusreset_suggestions_${today}`
 
-  try {
-    const cached = sessionStorage.getItem(cacheKey)
-    if (cached) {
-      const { timestamp, data } = JSON.parse(cached)
-      const ageMin = (Date.now() - timestamp) / 60000
-      if (ageMin < 10) return data // cache valid for 10 min
+  if (!skipCacheRead) {
+    try {
+      const cached = sessionStorage.getItem(cacheKey)
+      if (cached) {
+        const { timestamp, data } = JSON.parse(cached)
+        const ageMin = (Date.now() - timestamp) / 60000
+        if (ageMin < 10) {
+          console.log('[FocusReset Debug] generateStepSuggestions: returning cached suggestions (age:', ageMin.toFixed(1), 'min)')
+          return data
+        }
+      }
+    } catch {
+      /* sessionStorage unavailable — continue without cache */
     }
-  } catch {
-    /* sessionStorage unavailable — continue without cache */
+  } else {
+    console.log('[FocusReset Debug] generateStepSuggestions: skipping cache —', hasBrainDump ? 'brain dump present' : 'forceRefresh=true')
   }
 
-  const systemPrompt = `You are the FocusReset app generating personalised task suggestions.
-Your output must be valid JSON only — no markdown, no explanation.`
+  /* ── Build the prompt ───────────────────────────────────────── */
+  const { user, currentSession, integrations, brainDump } = context
 
-  const userContent = `Generate personalised task suggestions for this user.
-User context:
-${JSON.stringify(context, null, 2)}
+  // Flatten brain dump into a readable block for the prompt
+  let brainDumpBlock = ''
+  if (brainDump) {
+    const parts = []
+    if (brainDump.actionItems?.length)        parts.push(`ACTION ITEMS (things they need to do): ${brainDump.actionItems.join('; ')}`)
+    if (brainDump.unresolvedThoughts?.length) parts.push(`UNRESOLVED THOUGHTS (worries/lingering concerns): ${brainDump.unresolvedThoughts.join('; ')}`)
+    if (brainDump.blockers?.length)           parts.push(`BLOCKERS: ${brainDump.blockers.join('; ')}`)
+    if (brainDump.peopleNames?.length)        parts.push(`PEOPLE MENTIONED: ${brainDump.peopleNames.join(', ')}`)
+    if (brainDump.projectsMentioned?.length)  parts.push(`PROJECTS MENTIONED: ${brainDump.projectsMentioned.join(', ')}`)
+    if (brainDump.deadlinesMentioned?.length) parts.push(`DEADLINES MENTIONED: ${brainDump.deadlinesMentioned.join('; ')}`)
+    if (brainDump.emotionalTone)              parts.push(`EMOTIONAL TONE: ${brainDump.emotionalTone}`)
+    brainDumpBlock = parts.join('\n')
+  }
 
-Output format (strict JSON):
+  // Flatten integration data
+  let integrationsBlock = ''
+  const intParts = []
+  if (integrations?.jira?.tickets?.length) {
+    const tickets = integrations.jira.tickets.slice(0, 5)
+    intParts.push('JIRA OPEN TICKETS:\n' + tickets.map(t => `  - ${t.key}: ${t.summary} [${t.status}]`).join('\n'))
+  }
+  if (integrations?.linear?.issues?.length) {
+    const issues = integrations.linear.issues.slice(0, 5)
+    intParts.push('LINEAR OPEN ISSUES:\n' + issues.map(i => `  - ${i.key}: ${i.summary} [${i.status}]`).join('\n'))
+  }
+  if (integrations?.github?.repos?.length) {
+    const prs = integrations.github.repos
+      .flatMap(r => r.openPRs.map(pr => `  - ${r.name}#${pr.number}: ${pr.title}`))
+      .slice(0, 5)
+    if (prs.length) intParts.push('GITHUB OPEN PRS:\n' + prs.join('\n'))
+  }
+  if (intParts.length) integrationsBlock = intParts.join('\n')
+
+  const systemPrompt = `You are the FocusReset AI — a post-meeting cognitive recovery assistant.
+Your job is to generate hyper-personalised, grounded task suggestions that help the user re-enter deep focus work immediately after a meeting.
+Output must be valid JSON only — no markdown, no explanation, no preamble.`
+
+  const userContent = `Generate personalised focus task suggestions for this user who just finished a meeting.
+
+═══ USER PROFILE ═══
+Name: ${user.name}
+Role: ${user.role}
+Projects: ${user.projects?.join(', ') || 'not specified'}
+Tools: ${user.tools?.join(', ') || 'not specified'}
+Focus peak: ${user.focusPeak}
+${currentSession ? `Meeting just ended: ${currentSession.meetingType || ''} — ${currentSession.meetingName || ''}` : ''}
+
+${brainDumpBlock ? `═══ BRAIN DUMP CONTEXT (extracted from what user just typed — USE THIS AS PRIMARY INPUT) ═══
+${brainDumpBlock}
+` : ''}
+${integrationsBlock ? `═══ ACTIVE WORK CONTEXT ═══
+${integrationsBlock}
+` : ''}
+═══ INSTRUCTIONS ═══
+1. Return exactly 4 priorityTask cards.
+2. If brain dump context is available:
+   - At least 2-3 cards MUST directly address real items from the brain dump (action items, unresolved thoughts, or blockers).
+   - Use the actual names of people and projects from the brain dump in the card label and "why" field.
+   - Example: if actionItems has "Reply to Rahul about API deadline", create a card like { id: "reply-rahul", label: "Reply to Rahul on API", ... }
+3. If Jira/Linear tickets are available, reference ticket keys (e.g. "PROJ-123") in relevant cards.
+4. For each priorityTask, generate exactly 3 entryTask items keyed by that task's id.
+5. Each entryTask MUST be an absurdly small, laughably easy first action completable in 60–90 seconds.
+   - Bad example: "Work on the API integration" (too vague, too big)
+   - Good example: "Open Slack and search for Rahul's name in the search bar"
+   - Good example: "Open the file, scroll to the last line you wrote, read it once"
+   - Good example: "Write just the function name on a blank line — nothing else"
+6. The "why" field: one short sentence grounding the card in the user's actual context.
+7. The "type" field: one of feature|bug-fix|writing|review|communication|planning|other
+
+Output format (strict JSON, no trailing commas):
 {
   "priorityTasks": [
-    { "id": "string", "label": "string", "type": "string", "why": "string" }
+    { "id": "unique-kebab-id", "label": "Short task label", "type": "string", "why": "One sentence grounded in user context" }
   ],
   "entryTasks": {
-    "[taskId]": [
-      { "label": "string", "duration": "string" }
+    "unique-kebab-id": [
+      "Absurdly small first action in 60-90 seconds",
+      "Another tiny first action",
+      "A third tiny first action"
     ]
   }
 }
 
-Rules:
-- Return exactly 4 priorityTasks
-- Return exactly 3 entryTasks per priority task (keyed by the task id)
-- Reference actual project names if available in context.user.projects
-- entryTasks must be completable in 60–90 seconds (absurdly small)
-- Include Jira ticket numbers if context.integrations.jira is not null, or Linear issue IDs/keys if context.integrations.linear is not null
-- The "why" field: one sentence explaining relevance to this user's data
-- If context.todayContext.calendarMeetings has items, factor in available time
-Return ONLY the JSON.`
+Return ONLY the JSON object. No text before or after it.`
 
   try {
     console.log('[FocusReset Debug] generateStepSuggestions calling API...');
-    const raw     = await callGroq({ systemPrompt, userContent, maxTokens: 900 })
+    console.log('[FocusReset Debug] generateStepSuggestions brainDump context:', brainDump);
+    const raw     = await callGroq({ systemPrompt, userContent, maxTokens: 1200 })
     console.log('[FocusReset Debug] generateStepSuggestions raw response:', raw);
     const cleaned = raw.replace(/```json?\n?/gi, '').replace(/```/g, '').trim()
     const parsed  = JSON.parse(cleaned)
@@ -458,11 +551,11 @@ function _getCalendarMeetings() {
   try {
     const rawG = localStorage.getItem('focusreset_calendar_meetings')
     google = rawG ? JSON.parse(rawG) : []
-  } catch {}
+  } catch { /* JSON parse failure — ignore, use empty array */ }
   try {
     const rawO = localStorage.getItem('focusreset_outlook_meetings')
     outlook = rawO ? JSON.parse(rawO) : []
-  } catch {}
+  } catch { /* JSON parse failure — ignore, use empty array */ }
 
   const merged = [...google, ...outlook]
   return merged.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
