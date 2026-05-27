@@ -18,23 +18,15 @@ export default function IntegrationCallback() {
     async function processCallback() {
       const code = searchParams.get('code')
       const state = searchParams.get('state')
-      const hash = window.location.hash
 
-      // Create a unique key for this specific code exchange/hash
-      const key = provider === 'outlook' ? hash : `${provider}_${code}_${state}`
+      // Create a unique key for this specific code exchange
+      const key = `${provider}_${code}_${state}`
       if (!key) return
 
       let promise = activeCallbacks.get(key)
       if (!promise) {
         promise = (async () => {
-          if (provider === 'outlook') {
-            if (!hash || !hash.includes('access_token')) {
-              throw new Error('No access token returned in URL hash fragment.')
-            }
-            const { handleOutlookCallback, fetchOutlookData } = await import('../services/outlookService.js')
-            const token = await handleOutlookCallback(hash)
-            await fetchOutlookData(token)
-          } else if (provider === 'github') {
+          if (provider === 'github') {
             if (!code) throw new Error('No authorization code found in URL callback parameters.')
             const token = await handleGithubCallback(code, state)
             await fetchGithubData(token)
@@ -80,7 +72,7 @@ export default function IntegrationCallback() {
     }
   }, [provider, searchParams, navigate])
 
-  const providerName = provider === 'github' ? 'GitHub' : provider === 'notion' ? 'Notion' : provider === 'google' ? 'Google Calendar' : provider === 'outlook' ? 'Outlook Calendar' : provider
+  const providerName = provider === 'github' ? 'GitHub' : provider === 'notion' ? 'Notion' : provider === 'google' ? 'Google Calendar' : provider
 
   return (
     <div className="cb-page container-narrow animate-fade-in">

@@ -162,7 +162,6 @@ export async function assembleFullContext(currentSession = null) {
     github: _getIntegrationData('github'),
     notion: _getIntegrationData('notion'),
     linear: _getIntegrationData('linear'),
-    outlook: _getIntegrationData('outlook'),
   }
 
   return { user, patterns, todayContext, currentSession: currentSessionData, integrations }
@@ -552,18 +551,12 @@ function _getMostCommonTask(completedSessions) {
  */
 function _getCalendarMeetings() {
   let google = []
-  let outlook = []
   try {
     const rawG = localStorage.getItem('focusreset_calendar_meetings')
     google = rawG ? JSON.parse(rawG) : []
   } catch { /* JSON parse failure — ignore, use empty array */ }
-  try {
-    const rawO = localStorage.getItem('focusreset_outlook_meetings')
-    outlook = rawO ? JSON.parse(rawO) : []
-  } catch { /* JSON parse failure — ignore, use empty array */ }
 
-  const merged = [...google, ...outlook]
-  return merged.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+  return google.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
 }
 
 /**

@@ -52,14 +52,6 @@ import {
   getLinearSummary,
   linearPriorityIcon,
 } from '../services/linearService.js'
-import {
-  connectOutlook,
-  disconnectOutlook,
-  syncOutlookData,
-  getStoredOutlookData,
-  getStoredMeetings as getStoredOutlookMeetings,
-  isOutlookConnected,
-} from '../services/outlookService.js'
 
 const MEETING_LABELS = {
   standup: 'Team Standup', 'one-on-one': '1-on-1',
@@ -329,9 +321,6 @@ export default function Dashboard() {
   const [meetingsList, setMeetingsList] = useState(() => getStoredMeetings())
   const [calendarSyncStatus, setCalendarSyncStatus] = useState(() => isCalendarConnected() ? 'connected' : 'disconnected')
 
-  const [outlookData, setOutlookData] = useState(() => getStoredOutlookData())
-  const [outlookMeetingsList, setOutlookMeetingsList] = useState(() => getStoredOutlookMeetings())
-  const [outlookSyncStatus, setOutlookSyncStatus] = useState(() => isOutlookConnected() ? 'connected' : 'disconnected')
 
   // Jira connection modal states
   const [showJiraModal, setShowJiraModal] = useState(false)
@@ -547,40 +536,6 @@ export default function Dashboard() {
     }
   }
 
-  // Outlook actions
-  const handleConnectOutlook = async () => {
-    setOutlookSyncStatus('connecting')
-    try {
-      connectOutlook()
-      // Fallback: reset status if browser doesn't redirect
-      setTimeout(() => {
-        setOutlookSyncStatus(prev => prev === 'connecting' ? 'error' : prev)
-      }, 6000)
-    } catch (err) {
-      console.error(err)
-      setOutlookSyncStatus('error')
-    }
-  }
-
-  const handleDisconnectOutlook = () => {
-    disconnectOutlook()
-    setOutlookData(null)
-    setOutlookMeetingsList([])
-    setOutlookSyncStatus('disconnected')
-  }
-
-  const handleSyncOutlook = async () => {
-    setOutlookSyncStatus('connecting')
-    try {
-      const result = await syncOutlookData()
-      setOutlookData(result.integration)
-      setOutlookMeetingsList(result.meetings)
-      setOutlookSyncStatus('connected')
-    } catch (err) {
-      console.error(err)
-      setOutlookSyncStatus('error')
-    }
-  }
 
   const isEmpty = sessions.length === 0
   const hasEnough = sessions.filter(s => s.completed).length >= 3
@@ -1042,47 +997,6 @@ export default function Dashboard() {
                   ) : null}
                 </IntegrationCard>
 
-                {/* Outlook Calendar Card */}
-                <IntegrationCard
-                  id="outlook"
-                  name="Outlook Calendar"
-                  description="Auto-detect today's meetings"
-                  icon="📅"
-                  status={outlookSyncStatus}
-                  connectedAs={outlookData?.email}
-                  summary={getCalendarSummary(outlookMeetingsList)}
-                  syncedAt={outlookData?.syncedAt}
-                  onConnect={handleConnectOutlook}
-                  onDisconnect={handleDisconnectOutlook}
-                  onSync={handleSyncOutlook}
-                >
-                  {outlookMeetingsList && outlookMeetingsList.length > 0 ? (
-                    <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {outlookMeetingsList.map(meeting => (
-                        <li key={meeting.id} style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
-                            <span style={{ fontWeight: 600, color: 'var(--color-text)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                              {meeting.summary}
-                            </span>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--color-muted)' }}>
-                              {formatTime(meeting.startTime)} - {formatTime(meeting.endTime)}
-                            </span>
-                          </div>
-                          <span className="badge badge-accent" style={{ fontSize: '0.7rem', padding: '2px 6px', flexShrink: 0 }}>
-                            {MEETING_LABELS[meeting.meetingType] || 'Meeting'}
-                          </span>
-                          {meeting.hangoverScore && (
-                            <span className={`badge db-score-badge db-score-${meeting.hangoverScore.tone}`} style={{ fontSize: '0.7rem', padding: '2px 6px', flexShrink: 0 }}>
-                              {meeting.hangoverScore.score}/100
-                            </span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : outlookMeetingsList ? (
-                    <span style={{ fontSize: '0.85rem', color: 'var(--color-muted)' }}>No meetings scheduled for today.</span>
-                  ) : null}
-                </IntegrationCard>
               </div>
             </Section>
           </>
