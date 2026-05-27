@@ -66,8 +66,23 @@ export async function handleGithubCallback(code, state) {
     body: JSON.stringify({ code }),
   })
 
-  if (!response.ok) throw new Error(`Token exchange failed: ${response.status}`)
-  const { access_token } = await response.json()
+  if (!response.ok) {
+    let errMsg = `Status ${response.status}`
+    try {
+      const errData = await response.json()
+      if (errData?.error) {
+        errMsg = errData.error
+      }
+    } catch (_) {}
+    throw new Error(`GitHub token exchange failed: ${errMsg}`)
+  }
+
+  const tokenData = await response.json()
+  if (tokenData.error) {
+    throw new Error(`GitHub OAuth error: ${tokenData.error_description || tokenData.error}`)
+  }
+
+  const access_token = tokenData.access_token
   if (!access_token) throw new Error('No access token returned')
 
   return access_token

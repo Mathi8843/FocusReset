@@ -137,7 +137,7 @@ function BrainDump({ onDone, meetingName, hangoverScore }) {
 }
 
 /* --- Step 2: Priority Reset --- */
-function PriorityReset({ onDone, aiTasks }) {
+function PriorityReset({ onDone, aiTasks, isLoading }) {
   const [selected, setSelected] = useState(null)
   const [customTask, setCustomTask] = useState('')
   const [showCustom, setShowCustom] = useState(false)
@@ -170,66 +170,78 @@ function PriorityReset({ onDone, aiTasks }) {
       <div className="step-content">
         <span className="badge badge-accent">Step 2 of 4 · 1 minute</span>
         <h2 className="step-heading">Priority Reset</h2>
-        <p className="step-description">
-          Your brain is probably still carrying meeting context — that is completely normal.
-          Let's reduce the restart friction. What is the <em>single most important task</em> you were focused on before?
-        </p>
 
-        {isAI && (
-          <div className="ai-badge-row">
-            <span className="badge badge-ghost" style={{ fontSize: '0.68rem' }}>✨ AI-personalized for you</span>
+        {isLoading ? (
+          <div className="ai-loading-container animate-fade-in">
+            <div className="ai-loader-spinner"></div>
+            <p className="ai-loading-text">
+              Analyzing brain dump to personalize your priorities...
+            </p>
           </div>
-        )}
+        ) : (
+          <>
+            <p className="step-description">
+              Your brain is probably still carrying meeting context — that is completely normal.
+              Let's reduce the restart friction. What is the <em>single most important task</em> you were focused on before?
+            </p>
 
-        {/* Task cards */}
-        <div className="priority-grid">
-          {taskCards.map(task => (
+            {isAI && (
+              <div className="ai-badge-row">
+                <span className="badge badge-ghost" style={{ fontSize: '0.68rem' }}>✨ AI-personalized for you</span>
+              </div>
+            )}
+
+            {/* Task cards */}
+            <div className="priority-grid">
+              {taskCards.map(task => (
+                <button
+                  key={task.id}
+                  className={`priority-card card card-selectable ${selected === task.id && !showCustom ? 'card-selected' : ''}`}
+                  onClick={() => { setSelected(task.id); setShowCustom(false) }}
+                  aria-pressed={selected === task.id && !showCustom}
+                >
+                  <span className="priority-emoji" role="img" aria-label={task.label}>{task.emoji || '🎯'}</span>
+                  <span className="priority-label">{task.label}</span>
+                  <span className="priority-desc">{task.why || task.desc}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Custom task option */}
             <button
-              key={task.id}
-              className={`priority-card card card-selectable ${selected === task.id && !showCustom ? 'card-selected' : ''}`}
-              onClick={() => { setSelected(task.id); setShowCustom(false) }}
-              aria-pressed={selected === task.id && !showCustom}
+              className={`custom-task-toggle ${showCustom ? 'custom-task-toggle-active' : ''}`}
+              onClick={() => { setShowCustom(s => !s); setSelected(null) }}
             >
-              <span className="priority-emoji" role="img" aria-label={task.label}>{task.emoji || '🎯'}</span>
-              <span className="priority-label">{task.label}</span>
-              <span className="priority-desc">{task.why || task.desc}</span>
+              ✏️ Type my own task
             </button>
-          ))}
-        </div>
 
-        {/* Custom task option */}
-        <button
-          className={`custom-task-toggle ${showCustom ? 'custom-task-toggle-active' : ''}`}
-          onClick={() => { setShowCustom(s => !s); setSelected(null) }}
-        >
-          ✏️ Type my own task
-        </button>
+            {showCustom && (
+              <input
+                id="custom-task-input"
+                type="text"
+                placeholder="e.g. Finish the quarterly report"
+                value={customTask}
+                onChange={e => setCustomTask(e.target.value)}
+                autoFocus
+                style={{ marginTop: 8 }}
+              />
+            )}
 
-        {showCustom && (
-          <input
-            id="custom-task-input"
-            type="text"
-            placeholder="e.g. Finish the quarterly report"
-            value={customTask}
-            onChange={e => setCustomTask(e.target.value)}
-            autoFocus
-            style={{ marginTop: 8 }}
-          />
+            <div className="step-actions">
+              {timerDone && (
+                <p className="timer-done-hint">⏱ Timer complete — you can continue or move on.</p>
+              )}
+              <button
+                id="priority-done-btn"
+                className="btn btn-primary btn-lg"
+                onClick={handleContinue}
+                disabled={!canContinue}
+              >
+                Set My Priority →
+              </button>
+            </div>
+          </>
         )}
-
-        <div className="step-actions">
-          {timerDone && (
-            <p className="timer-done-hint">⏱ Timer complete — you can continue or move on.</p>
-          )}
-          <button
-            id="priority-done-btn"
-            className="btn btn-primary btn-lg"
-            onClick={handleContinue}
-            disabled={!canContinue}
-          >
-            Set My Priority →
-          </button>
-        </div>
       </div>
     </div>
   )
@@ -444,6 +456,7 @@ export default function Reset({ prefillMeeting, onPrefillConsumed }) {
 
   // AI-generated suggestions (populated in background after Step 1)
   const [aiSuggestions, setAiSuggestions] = useState(null) // { priorityTasks, entryTasks }
+  const [isAiLoading, setIsAiLoading] = useState(false)
 
   // Ref to store brain dump context for feeding into suggestions
   const brainDumpContextRef = useRef(null)
@@ -553,6 +566,7 @@ export default function Reset({ prefillMeeting, onPrefillConsumed }) {
     // 🤖 Extract context from brain dump in background to refine suggestions.
     // If this finishes before user picks Step 2, suggestions update automatically.
     if (text?.trim().length >= 20) {
+      setIsAiLoading(true)
       console.log('[FocusReset Debug] handleBrainDumpDone: initiating brain dump extraction for text =', text);
       extractBrainDumpContext(text)
         .then(ctx => {
@@ -580,6 +594,9 @@ export default function Reset({ prefillMeeting, onPrefillConsumed }) {
         .catch((err) => {
           console.error('[FocusReset Debug] handleBrainDumpDone enrichment failed:', err);
           /* silently use existing suggestions */
+        })
+        .finally(() => {
+          setIsAiLoading(false)
         })
     } else {
       console.log('[FocusReset Debug] handleBrainDumpDone: text too short for extraction, skipping.');
@@ -689,6 +706,7 @@ export default function Reset({ prefillMeeting, onPrefillConsumed }) {
             <PriorityReset
               onDone={handlePriorityDone}
               aiTasks={aiSuggestions?.priorityTasks}
+              isLoading={isAiLoading}
             />
           </StepTransition>
         )}
@@ -965,6 +983,43 @@ export default function Reset({ prefillMeeting, onPrefillConsumed }) {
           .reset-container {
             padding-top: 24px;
           }
+        }
+
+        /* AI personalized loader */
+        .ai-loading-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 48px var(--space-lg);
+          background: rgba(26, 20, 16, 0.02);
+          border: 1.5px dashed var(--color-border);
+          border-radius: var(--radius-lg);
+          margin-top: 16px;
+          width: 100%;
+        }
+
+        .ai-loader-spinner {
+          width: 32px;
+          height: 32px;
+          border: 3px solid rgba(232, 93, 38, 0.15);
+          border-top-color: var(--color-accent);
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+          margin-bottom: 16px;
+        }
+
+        .ai-loading-text {
+          font-family: var(--font-body);
+          font-size: 0.95rem;
+          color: var(--color-muted);
+          text-align: center;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
         }
       `}</style>
     </div>

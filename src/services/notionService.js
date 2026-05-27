@@ -63,8 +63,23 @@ export async function handleNotionCallback(code, state) {
     body: JSON.stringify({ code, redirect_uri: REDIRECT_URI }),
   })
 
-  if (!response.ok) throw new Error(`Notion token exchange failed: ${response.status}`)
+  if (!response.ok) {
+    let errMsg = `Status ${response.status}`
+    try {
+      const errData = await response.json()
+      if (errData?.error) {
+        errMsg = errData.error
+      } else if (errData?.message) {
+        errMsg = errData.message
+      }
+    } catch (_) {}
+    throw new Error(`Notion token exchange failed: ${errMsg}`)
+  }
+
   const tokenData = await response.json()
+  if (tokenData.error) {
+    throw new Error(`Notion OAuth error: ${tokenData.message || tokenData.error}`)
+  }
   if (!tokenData.access_token) throw new Error('No access token returned from Notion')
 
   return tokenData

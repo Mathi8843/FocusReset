@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { handleGithubCallback, fetchGithubData } from '../services/githubService.js'
 import { handleNotionCallback, fetchNotionPages } from '../services/notionService.js'
-// Google Calendar uses GSI popup flow — no callback page needed.
+// Cache to share token exchange promises across React StrictMode double-mounts
+const activeCallbacks = new Map()
 
 export default function IntegrationCallback() {
   const { provider } = useParams()
@@ -15,71 +16,59 @@ export default function IntegrationCallback() {
     let active = true
 
     async function processCallback() {
-      if (provider === 'outlook') {
-        try {
-          const hash = window.location.hash
-          if (!hash || !hash.includes('access_token')) {
-            throw new Error('No access token returned in URL hash fragment.')
-          }
-          const { handleOutlookCallback, fetchOutlookData } = await import('../services/outlookService.js')
-          const token = await handleOutlookCallback(hash)
-          await fetchOutlookData(token)
-          if (active) {
-            setStatus('success')
-            setTimeout(() => {
-              if (active) navigate('/dashboard')
-            }, 2000)
-          }
-        } catch (err) {
-          console.error('Error during Outlook integration callback:', err)
-          if (active) {
-            setStatus('error')
-            setErrorMsg(err.message || 'An unexpected error occurred during Outlook authorization.')
-          }
-        }
-        return
-      }
-
       const code = searchParams.get('code')
       const state = searchParams.get('state')
+      const hash = window.location.hash
 
-      if (!code) {
-        if (active) {
-          setStatus('error')
-          setErrorMsg('No authorization code found in URL callback parameters.')
-        }
-        return
+      // Create a unique key for this specific code exchange/hash
+      const key = provider === 'outlook' ? hash : `${provider}_${code}_${state}`
+      if (!key) return
+
+      let promise = activeCallbacks.get(key)
+      if (!promise) {
+        promise = (async () => {
+          if (provider === 'outlook') {
+            if (!hash || !hash.includes('access_token')) {
+              throw new Error('No access token returned in URL hash fragment.')
+            }
+            const { handleOutlookCallback, fetchOutlookData } = await import('../services/outlookService.js')
+            const token = await handleOutlookCallback(hash)
+            await fetchOutlookData(token)
+          } else if (provider === 'github') {
+            if (!code) throw new Error('No authorization code found in URL callback parameters.')
+            const token = await handleGithubCallback(code, state)
+            await fetchGithubData(token)
+          } else if (provider === 'notion') {
+            if (!code) throw new Error('No authorization code found in URL callback parameters.')
+            const tokenData = await handleNotionCallback(code, state)
+            await fetchNotionPages(tokenData.access_token, tokenData.workspace_name)
+          } else if (provider === 'google') {
+            // Google uses GSI popup
+            return
+          } else {
+            throw new Error(`Unknown integration provider: ${provider}`)
+          }
+        })()
+        activeCallbacks.set(key, promise)
       }
 
       try {
-        if (provider === 'github') {
-          const token = await handleGithubCallback(code, state)
-          await fetchGithubData(token)
-        } else if (provider === 'notion') {
-          const tokenData = await handleNotionCallback(code, state)
-          await fetchNotionPages(tokenData.access_token, tokenData.workspace_name)
-        } else if (provider === 'google') {
-          // Google uses GSI popup — this route shouldn't be reached,
-          // but redirect back to dashboard gracefully.
-          if (active) {
-            navigate('/dashboard')
-          }
-          return
-        } else {
-          throw new Error(`Unknown integration provider: ${provider}`)
-        }
-
+        await promise
         if (active) {
           setStatus('success')
           setTimeout(() => {
-            if (active) navigate('/dashboard')
+            if (active) {
+              navigate('/dashboard')
+              activeCallbacks.delete(key)
+            }
           }, 2000)
         }
       } catch (err) {
-        console.error('Error during integration callback:', err)
         if (active) {
+          console.error(`Error during ${provider} integration callback:`, err)
           setStatus('error')
           setErrorMsg(err.message || 'An unexpected error occurred during authorization.')
+          activeCallbacks.delete(key)
         }
       }
     }
