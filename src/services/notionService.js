@@ -93,19 +93,12 @@ export async function handleNotionCallback(code, state) {
  * workspaceName — from the token exchange response
  */
 export async function fetchNotionPages(token, workspaceName = 'Workspace') {
-  const res = await fetch('https://api.notion.com/v1/search', {
+  const res = await fetch('/api/notion/search', {
     method: 'POST',
     headers: {
-      Authorization:    `Bearer ${token}`,
       'Content-Type':   'application/json',
-      'Notion-Version': NOTION_VERSION,
     },
-    body: JSON.stringify({
-      query:     '',
-      filter:    { value: 'page', property: 'object' },
-      sort:      { direction: 'descending', timestamp: 'last_edited_time' },
-      page_size: 10,
-    }),
+    body: JSON.stringify({ token }),
   })
 
   if (!res.ok) throw new Error(`Notion search failed: ${res.status}`)

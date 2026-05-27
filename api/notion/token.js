@@ -11,8 +11,14 @@ export default async function handler(req, res) {
   const client_id = process.env.VITE_NOTION_CLIENT_ID;
   const client_secret = process.env.NOTION_CLIENT_SECRET;
 
-  if (!client_id || !client_secret) {
-    return res.status(500).json({ error: 'Server configuration error: Notion secrets are missing.' });
+  if (!client_id && !client_secret) {
+    return res.status(500).json({ error: 'Server configuration error: Both VITE_NOTION_CLIENT_ID and NOTION_CLIENT_SECRET environment variables are missing on Vercel.' });
+  }
+  if (!client_id) {
+    return res.status(500).json({ error: 'Server configuration error: VITE_NOTION_CLIENT_ID environment variable is missing on Vercel.' });
+  }
+  if (!client_secret) {
+    return res.status(500).json({ error: 'Server configuration error: NOTION_CLIENT_SECRET environment variable is missing on Vercel.' });
   }
 
   try {
